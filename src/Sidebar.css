@@ -1,0 +1,156 @@
+.hamburger-menu-container {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    z-index: 1050;
+    width: 100%;
+    font-size: 36px;
+    transform: translateX(0);
+    transition: transform 0.3s ease; 
+}
+    
+.hamburger-button {
+    background-color: transparent;
+    background: transparent;
+    z-index: 1060;
+    font-size: inherit;
+}
+
+.hamburger-menu-container.menu-active {
+    transform: translateX(clamp(195px, 250px, 35vw));
+    transition: transform 0.3s ease;
+}
+
+.hamburger-button.active {
+    background-color: transparent; 
+    border-color: none;
+    outline: none;
+}
+
+.hamburger-button:hover, .hamburger-button:focus {
+    background: transparent; 
+    outline: none;  
+    color: none;
+    border-color: none;
+}
+
+.menu {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: clamp(195px, 250px, 35vw);
+    background-color: white;  
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1120;
+    overflow: hidden; 
+    border-right: solid black;
+    text-align: center;
+}
+
+.menu a {
+    display: block;  
+    padding: 10px;
+    text-decoration: underline;
+    color: black;
+    white-space: nowrap; 
+    border: none;
+
+}
+
+.menu-active {
+    transform: translateX(0); 
+}
+
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    z-index: 1010;
+    display: none;
+}
+
+.backdrop-active {
+    display: block;
+}
+
+.another-section {
+    margin-top: 50px;
+    text-align: center;
+}
+
+.section-label {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.logged-in-info {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+}
+
+
+@media (min-width: 768px) {
+    .menu-text {
+        display: block; 
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-text {
+        display: block; 
+    }
+    .hamburger-menu-container {
+        position: relative;
+        background-color: white;
+    }
+}
+
+.menu-text {
+    font-size: 16px;
+}
+
+.burger {
+    font-size: 36px;
+}
+
+.logged-in-info {
+    font-size: 0.8em;
+    color: gray;
+    margin-top: 10px;
+    text-align: center;
+}
+
+  @media (prefers-color-scheme: dark) {
+    .menu-text {
+        color: white;
+    }
+
+    .hamburger-menu-container {
+        background-color: #383c3c;
+        color: white;
+    }
+
+    .menu {
+        background-color: #383c3c;
+        color: white;
+    }
+
+    .logged-in-info {
+        color: white;
+    }
+
+    .menu a {
+        color: whitesmoke;
+        text-decoration: none;
+    }
+  }

@@ -1,0 +1,35 @@
+.fitness-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.fitness-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.fitness-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.fitness-tabs button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #e0e0e0;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 5px;
+}
+
+.fitness-tabs button.active {
+    background-color: #ff5733;
+    color: white;
+}
+
+.fitness-chart {
+    margin-bottom: 20px;
+}
