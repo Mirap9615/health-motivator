@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import './Diet.css';
 
 function Diet() {
     const [activeTab, setActiveTab] = useState('daily');
+    const [pastData, setPastData] = useState([]);
 
-    // Placeholder Data for Different Time Periods
+    useEffect(() => {
+        if (activeTab === 'past') {
+            fetch("/api/entries/diet/past", { method: "GET", credentials: "include" })
+                .then((res) => res.json())
+                .then((data) => setPastData(data))
+                .catch((error) => console.error("Error fetching past data:", error));
+        }
+    }, [activeTab]);
+
+    // placeholder data
     const data = {
         daily: [
             { date: '6AM', calories: 250 },
@@ -52,8 +62,6 @@ function Diet() {
             <SideBar />
             <div className="diet-container">
                 <h1 className="diet-title">Diet Overview</h1>
-
-                {/* 📈 Dynamic Line Chart */}
                 <div className="diet-chart">
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={data[activeTab]}>
@@ -66,20 +74,20 @@ function Diet() {
                     </ResponsiveContainer>
                 </div>
 
-                {/* Custom Tabs System */}
                 <div className="diet-tabs">
                     <button onClick={() => setActiveTab('daily')} className={activeTab === 'daily' ? 'active' : ''}>Daily</button>
                     <button onClick={() => setActiveTab('weekly')} className={activeTab === 'weekly' ? 'active' : ''}>Weekly</button>
                     <button onClick={() => setActiveTab('monthly')} className={activeTab === 'monthly' ? 'active' : ''}>Monthly</button>
                     <button onClick={() => setActiveTab('annual')} className={activeTab === 'annual' ? 'active' : ''}>Annual</button>
+                    <button onClick={() => setActiveTab('past')} className={activeTab === 'past' ? 'active' : ''}>Past Data</button>
                 </div>
 
-                {/* Display Active Tab Data */}
                 <div className="diet-content">
                     {activeTab === 'daily' && <DailyDiet />}
                     {activeTab === 'weekly' && <WeeklyDiet />}
                     {activeTab === 'monthly' && <MonthlyDiet />}
                     {activeTab === 'annual' && <AnnualDiet />}
+                    {activeTab === 'past' && <PastDiet pastData={pastData} />}
                 </div>
             </div>
         </>
@@ -127,6 +135,42 @@ function AnnualDiet() {
             <p>Avg Calories per Month: <strong>1,875 kcal</strong></p>
             <p>Most Healthy Month: <strong>September</strong></p>
             <p>Most Indulgent Month: <strong>December (Holidays!)</strong></p>
+        </div>
+    );
+}
+
+function PastDiet({ pastData }) {
+    return (
+        <div className="diet-card">
+            <h3>Past Diet Entries</h3>
+            {pastData.length === 0 ? (
+                <p>No past diet entries found.</p>
+            ) : (
+                <table className="diet-table">
+                    <thead>
+                        <tr>
+                            <th>Meal Type</th>
+                            <th>Calories</th>
+                            <th>Protein (g)</th>
+                            <th>Carbs (g)</th>
+                            <th>Fats (g)</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {pastData.map((entry, index) => (
+                            <tr key={index}>
+                                <td>{entry.meal_type}</td>
+                                <td>{entry.calories}</td>
+                                <td>{entry.protein_g}</td>
+                                <td>{entry.carbs_g}</td>
+                                <td>{entry.fats_g}</td>
+                                <td>{new Date(entry.entry_time).toLocaleDateString()}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 }

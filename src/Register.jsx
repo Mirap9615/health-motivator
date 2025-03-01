@@ -11,7 +11,7 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Reset any previous error messages
+    setErrorMessage(""); 
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -19,14 +19,13 @@ const Register = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Ensures session cookie is stored
+        credentials: 'include', 
         body: JSON.stringify({ name, email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Redirect to home page after successful registration
         navigate('/home');
       } else {
         setErrorMessage(data.error || "Registration failed. Please try again.");

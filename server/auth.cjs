@@ -13,6 +13,8 @@ router.post(
     body("name").not().isEmpty().withMessage("Name is required"),
   ],
   async (req, res) => {
+    console.log("Incoming request body:", req.body);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -88,6 +90,14 @@ router.post(
     }
   }
 );
+
+router.get("/check-auth", (req, res) => {
+  if (req.session.user) {
+    res.json({ authenticated: true, user: req.session.user });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
 
 router.post("/logout", (req, res) => {
   req.session.destroy((err) => {

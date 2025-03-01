@@ -36,7 +36,11 @@ if (req.session.user) {
 };
 
 const authRoutes = require("./auth.cjs");
+const userRoutes = require("./user.cjs");
+const entryRoutes = require("./entries.cjs");
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/entries", entryRoutes);
 
 app.listen(port, () => {
 console.log(`Server listening on ${port}`);
