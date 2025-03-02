@@ -64,30 +64,51 @@ function Fitness() {
             return entryDate >= past365Days && entryDate <= now;
         });
     
-        const dailyStats = {
-            date: now.toISOString().split('T')[0],
-            minutes: 0,
-            steps: 0,
-            calories: 0,
-        };
-    
+        const pastNDays = 7;
+        const dailyGraphData = [];
+
+        for (let i = pastNDays - 1; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(now.getDate() - i);
+            const dateKey = date.toISOString().split('T')[0];
+
+            dailyGraphData.push({ date: dateKey, minutes: 0, steps: 0, calories: 0 });
+        }
+
         filteredDailyData.forEach(entry => {
-            dailyStats.minutes += Number(entry.duration_min) || 0;
-            dailyStats.steps += Number(entry.steps) || 0;
-            dailyStats.calories += Number(entry.calories_burned) || 0;
-        });
-    
-        const weeklyStats = {};
-        filteredWeeklyData.forEach(entry => {
-            const weekKey = `${new Date(entry.entry_time).getFullYear()}-W${getWeekNumber(new Date(entry.entry_time))}`;
-            if (!weeklyStats[weekKey]) {
-                weeklyStats[weekKey] = { week: weekKey, minutes: 0, steps: 0, calories: 0 };
+            const entryDate = new Date(entry.entry_time).toISOString().split('T')[0];
+            const foundEntry = dailyGraphData.find(d => d.date === entryDate);
+
+            if (foundEntry) {
+                foundEntry.minutes += Number(entry.duration_min) || 0;
+                foundEntry.steps += Number(entry.steps) || 0;
+                foundEntry.calories += Number(entry.calories_burned) || 0;
             }
-            weeklyStats[weekKey].minutes += Number(entry.duration_min) || 0;
-            weeklyStats[weekKey].steps += Number(entry.steps) || 0;
-            weeklyStats[weekKey].calories += Number(entry.calories_burned) || 0;
         });
-    
+
+        const pastNWeeks = 7;
+        const weeklyGraphData = [];
+
+        for (let i = pastNWeeks - 1; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(now.getDate() - i * 7); 
+            const weekKey = `${date.getFullYear()}-W${getWeekNumber(date)}`;
+
+            weeklyGraphData.push({ week: weekKey, minutes: 0, steps: 0, calories: 0 });
+        }
+
+        filteredWeeklyData.forEach(entry => {
+            const date = new Date(entry.entry_time);
+            const weekKey = `${date.getFullYear()}-W${getWeekNumber(date)}`;
+            const foundEntry = weeklyGraphData.find(d => d.week === weekKey);
+
+            if (foundEntry) {
+                foundEntry.minutes += Number(entry.duration_min) || 0;
+                foundEntry.steps += Number(entry.steps) || 0;
+                foundEntry.calories += Number(entry.calories_burned) || 0;
+            }
+        });
+
         const monthlyStats = {};
         filteredMonthlyData.forEach(entry => {
             const monthKey = `${new Date(entry.entry_time).getFullYear()}-${new Date(entry.entry_time).getMonth() + 1}`;
@@ -111,8 +132,8 @@ function Fitness() {
         });
     
         setProcessedData({
-            daily: [dailyStats],
-            weekly: Object.values(weeklyStats),
+            daily: dailyGraphData,
+            weekly: weeklyGraphData,
             monthly: Object.values(monthlyStats),
             annual: Object.values(annualStats),
         });
