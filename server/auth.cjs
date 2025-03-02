@@ -92,10 +92,12 @@ router.post(
 );
 
 router.get("/check-auth", (req, res) => {
-  if (req.session.user) {
-    res.json({ authenticated: true, user: req.session.user });
+  console.log("Session User:", req.session.user); 
+
+  if (req.session && req.session.user) {
+      res.json({ authenticated: true, user: req.session.user });
   } else {
-    res.json({ authenticated: false });
+      res.json({ authenticated: false, user: null }); 
   }
 });
 
@@ -104,6 +106,7 @@ router.post("/logout", (req, res) => {
     if (err) {
       return res.status(500).json({ error: "Could not log out" });
     }
+    res.clearCookie("connect.sid");
     res.json({ message: "Logout successful" });
   });
 });

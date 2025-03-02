@@ -64,4 +64,25 @@ router.get("/diet/past", async (req, res) => {
     }
 });
 
+router.get("/fitness/past", async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user_id = req.session.user.user_id;
+
+    try {
+        const result = await pool.query(
+            "SELECT exercise_type, duration_min, calories_burned, steps, entry_time FROM exercise_entries WHERE user_id = $1 ORDER BY entry_time DESC",
+            [user_id]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching past fitness entries:", error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
 module.exports = router;

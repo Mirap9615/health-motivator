@@ -13,6 +13,7 @@ const SideBar = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       const authStatus = await checkAuth();
+      console.log(authStatus);
       setIsLoggedIn(authStatus.authenticated);
       if (authStatus.authenticated) {
         setUsername(authStatus.user.name);
@@ -32,7 +33,9 @@ const SideBar = () => {
       });
 
       if (response.ok) {
+        const authStatus = await checkAuth();
         setIsLoggedIn(false);
+
         navigate("/login");
       } else {
         alert("Logout failed");
@@ -51,12 +54,11 @@ const SideBar = () => {
         </button>
       </div>
       <div className={`menu ${isOpen ? "menu-active" : ""}`}>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/diet">Diet</a>
-        <a href="/fitness">Fitness</a>
-
         {isLoggedIn ? (
           <>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/diet">Diet</a>
+            <a href="/fitness">Fitness</a>
             <a href="#" onClick={handleLogout}>Logout</a>
             <div className="logged-in-info">Logged in as {username}</div>
 
@@ -68,7 +70,10 @@ const SideBar = () => {
             </div>
           </>
         ) : (
-          <a href="/login">Login</a>
+          <>
+            <a href="/about">About</a>
+            <a href="/login">Login</a>
+          </>
         )}
       </div>
       <div className={`backdrop ${isOpen ? "backdrop-active" : ""}`} onClick={toggleMenu}></div>

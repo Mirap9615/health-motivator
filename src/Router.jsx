@@ -9,6 +9,7 @@ import Profile from './Profile.jsx';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import Logout from './Logout.jsx';
+import About from './About.jsx';
 
 function AppRouter() {
     return (
@@ -24,6 +25,7 @@ function AppRouter() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/logout" element={<Logout />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<Dashboard />} />
         </Routes>
         </Router>

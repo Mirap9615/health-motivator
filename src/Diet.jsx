@@ -5,68 +5,195 @@ import './Diet.css';
 
 function Diet() {
     const [activeTab, setActiveTab] = useState('daily');
-    const [pastData, setPastData] = useState([]);
+    const [dietData, setDietData] = useState([]);
+    const [processedData, setProcessedData] = useState({
+        daily: [],
+        weekly: [],
+        monthly: [],
+        annual: [],
+    });
+
+    const [summaryData, setSummaryData] = useState({
+        totalCalories: 0,
+        avgCalories: 0,
+        totalProtein: 0,
+        avgProtein: 0,
+        totalCarbs: 0,
+        avgCarbs: 0,
+        totalFats: 0,
+        avgFats: 0,
+    });    
 
     useEffect(() => {
-        if (activeTab === 'past') {
-            fetch("/api/entries/diet/past", { method: "GET", credentials: "include" })
-                .then((res) => res.json())
-                .then((data) => setPastData(data))
-                .catch((error) => console.error("Error fetching past data:", error));
-        }
-    }, [activeTab]);
+        fetch("/api/entries/diet/past", { method: "GET", credentials: "include" })
+            .then((res) => res.json())
+            .then((data) => {
+                setDietData(data);
+                processDietData(data);
+            })
+            .catch((error) => console.error("Error fetching past data:", error));
+    }, []);
 
-    // placeholder data
-    const data = {
-        daily: [
-            { date: '6AM', calories: 250 },
-            { date: '9AM', calories: 400 },
-            { date: '12PM', calories: 700 },
-            { date: '3PM', calories: 1000 },
-            { date: '6PM', calories: 1500 },
-            { date: '9PM', calories: 1800 }
-        ],
-        weekly: [
-            { date: 'Mon', calories: 1800 },
-            { date: 'Tue', calories: 1900 },
-            { date: 'Wed', calories: 2200 },
-            { date: 'Thu', calories: 2000 },
-            { date: 'Fri', calories: 1750 },
-            { date: 'Sat', calories: 1600 },
-            { date: 'Sun', calories: 1950 }
-        ],
-        monthly: [
-            { date: 'Week 1', calories: 1850 },
-            { date: 'Week 2', calories: 1900 },
-            { date: 'Week 3', calories: 2000 },
-            { date: 'Week 4', calories: 1750 }
-        ],
-        annual: [
-            { date: 'Jan', calories: 1950 },
-            { date: 'Feb', calories: 1850 },
-            { date: 'Mar', calories: 2000 },
-            { date: 'Apr', calories: 2100 },
-            { date: 'May', calories: 1900 },
-            { date: 'Jun', calories: 1800 },
-            { date: 'Jul', calories: 1700 },
-            { date: 'Aug', calories: 1850 },
-            { date: 'Sep', calories: 1950 },
-            { date: 'Oct', calories: 2050 },
-            { date: 'Nov', calories: 2150 },
-            { date: 'Dec', calories: 2200 }
-        ]
+    useEffect(() => {
+        updateSummaryData(processedData[activeTab]);
+    }, [activeTab, processedData]);    
+
+    const processDietData = (data) => {
+        if (!data.length) return;
+    
+        const now = new Date();
+        const past24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const past7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const past31Days = new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000);
+        const past365Days = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    
+        const filteredDailyData = data.filter(entry => {
+            const entryDate = new Date(entry.entry_time);
+            return entryDate >= past24Hours && entryDate <= now;
+        });
+    
+        const filteredWeeklyData = data.filter(entry => {
+            const entryDate = new Date(entry.entry_time);
+            return entryDate >= past7Days && entryDate <= now;
+        });
+    
+        const filteredMonthlyData = data.filter(entry => {
+            const entryDate = new Date(entry.entry_time);
+            return entryDate >= past31Days && entryDate <= now;
+        });
+    
+        const filteredAnnualData = data.filter(entry => {
+            const entryDate = new Date(entry.entry_time);
+            return entryDate >= past365Days && entryDate <= now;
+        });
+    
+        // DAILY
+        const dailyStats = {
+            date: now.toISOString().split('T')[0],
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fats: 0,
+        };
+    
+        filteredDailyData.forEach(entry => {
+            dailyStats.calories += Number(entry.calories) || 0;
+            dailyStats.protein += Number(entry.protein_g) || 0;
+            dailyStats.carbs += Number(entry.carbs_g) || 0;
+            dailyStats.fats += Number(entry.fats_g) || 0;
+        });
+    
+        // WEEKLY
+        const weeklyStats = {};
+        filteredWeeklyData.forEach(entry => {
+            const date = new Date(entry.entry_time);
+            const weekKey = `${date.getFullYear()}-W${getWeekNumber(date)}`;
+    
+            if (!weeklyStats[weekKey]) {
+                weeklyStats[weekKey] = { week: weekKey, calories: 0, protein: 0, carbs: 0, fats: 0 };
+            }
+    
+            weeklyStats[weekKey].calories += Number(entry.calories) || 0;
+            weeklyStats[weekKey].protein += Number(entry.protein_g) || 0;
+            weeklyStats[weekKey].carbs += Number(entry.carbs_g) || 0;
+            weeklyStats[weekKey].fats += Number(entry.fats_g) || 0;
+        });
+    
+        const sortedWeeklyData = Object.values(weeklyStats).sort((a, b) => a.week.localeCompare(b.week));
+    
+        // MONTHLY
+        const monthlyStats = {};
+        filteredMonthlyData.forEach(entry => {
+            const date = new Date(entry.entry_time);
+            const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+    
+            if (!monthlyStats[monthKey]) {
+                monthlyStats[monthKey] = { month: monthKey, calories: 0, protein: 0, carbs: 0, fats: 0 };
+            }
+    
+            monthlyStats[monthKey].calories += Number(entry.calories) || 0;
+            monthlyStats[monthKey].protein += Number(entry.protein_g) || 0;
+            monthlyStats[monthKey].carbs += Number(entry.carbs_g) || 0;
+            monthlyStats[monthKey].fats += Number(entry.fats_g) || 0;
+        });
+    
+        // ANNUAL
+        const annualStats = {};
+        filteredAnnualData.forEach(entry => {
+            const date = new Date(entry.entry_time);
+            const yearKey = `${date.getFullYear()}`;
+    
+            if (!annualStats[yearKey]) {
+                annualStats[yearKey] = { year: yearKey, calories: 0, protein: 0, carbs: 0, fats: 0 };
+            }
+    
+            annualStats[yearKey].calories += Number(entry.calories) || 0;
+            annualStats[yearKey].protein += Number(entry.protein_g) || 0;
+            annualStats[yearKey].carbs += Number(entry.carbs_g) || 0;
+            annualStats[yearKey].fats += Number(entry.fats_g) || 0;
+        });
+    
+        setProcessedData({
+            daily: [dailyStats],
+            weekly: sortedWeeklyData,
+            monthly: Object.values(monthlyStats),
+            annual: Object.values(annualStats),
+        });
+    };    
+
+    const updateSummaryData = (data) => {
+        if (!data || data.length === 0) {
+            setSummaryData({
+                totalCalories: 0,
+                avgCalories: 0,
+                totalProtein: 0,
+                avgProtein: 0,
+                totalCarbs: 0,
+                avgCarbs: 0,
+                totalFats: 0,
+                avgFats: 0,
+            });
+            return;
+        }
+    
+        let totalCalories = data.reduce((sum, entry) => sum + (Number(entry.calories) || 0), 0);
+        let totalProtein = data.reduce((sum, entry) => sum + (Number(entry.protein) || 0), 0);
+        let totalCarbs = data.reduce((sum, entry) => sum + (Number(entry.carbs) || 0), 0);
+        let totalFats = data.reduce((sum, entry) => sum + (Number(entry.fats) || 0), 0);
+    
+        let totalPeriods = data.length; 
+    
+        setSummaryData({
+            totalCalories,
+            avgCalories: totalPeriods > 0 ? totalCalories / totalPeriods : 0,
+            totalProtein,
+            avgProtein: totalPeriods > 0 ? totalProtein / totalPeriods : 0,
+            totalCarbs,
+            avgCarbs: totalPeriods > 0 ? totalCarbs / totalPeriods : 0,
+            totalFats,
+            avgFats: totalPeriods > 0 ? totalFats / totalPeriods : 0,
+        });
+    };    
+
+    const getWeekNumber = (date) => {
+        const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     };
 
     return (
         <>
             <SideBar />
             <div className="diet-container">
-                <h1 className="diet-title">Diet Overview</h1>
+                <h1 className="dashboard-title">Diet Overview</h1>
+
                 <div className="diet-chart">
                     <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={data[activeTab]}>
+                        <LineChart data={processedData[activeTab]}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
+                            <XAxis dataKey={activeTab === 'daily' ? 'date' : activeTab === 'weekly' ? 'week' : activeTab === 'monthly' ? 'month' : 'year'} />
                             <YAxis />
                             <Tooltip />
                             <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
@@ -82,60 +209,25 @@ function Diet() {
                     <button onClick={() => setActiveTab('past')} className={activeTab === 'past' ? 'active' : ''}>Past Data</button>
                 </div>
 
+                {activeTab !== 'past' && (
+                <div className="diet-summary">
+                <h2>Summary ({activeTab.charAt(0).toUpperCase() + activeTab.slice(1)})</h2>
+                <p><strong>Total Calories:</strong> {summaryData.totalCalories}</p>
+                {activeTab !== 'daily' && <p><strong>Average Calories Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgCalories).toFixed(2)}</p>}
+                <p><strong>Total Protein:</strong> {summaryData.totalProtein}g</p>
+                {activeTab !== 'daily' && <p><strong>Average Protein Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgProtein).toFixed(2)}g</p>}
+                <p><strong>Total Carbs:</strong> {summaryData.totalCarbs}g</p>
+                {activeTab !== 'daily' && <p><strong>Average Carbs Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgCarbs).toFixed(2)}g</p>}
+                <p><strong>Total Fats:</strong> {summaryData.totalFats}g</p>
+                {activeTab !== 'daily' && <p><strong>Average Fats Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgFats).toFixed(2)}g</p>}
+            </div>            
+                )}
+
                 <div className="diet-content">
-                    {activeTab === 'daily' && <DailyDiet />}
-                    {activeTab === 'weekly' && <WeeklyDiet />}
-                    {activeTab === 'monthly' && <MonthlyDiet />}
-                    {activeTab === 'annual' && <AnnualDiet />}
-                    {activeTab === 'past' && <PastDiet pastData={pastData} />}
+                    {activeTab === 'past' && <PastDiet pastData={dietData} />}
                 </div>
             </div>
         </>
-    );
-}
-
-function DailyDiet() {
-    return (
-        <div className="diet-card">
-            <h3>Daily Intake</h3>
-            <p>Total Calories: <strong>1,800 kcal</strong></p>
-            <p>Protein: <strong>120g</strong></p>
-            <p>Carbs: <strong>200g</strong></p>
-            <p>Fats: <strong>50g</strong></p>
-        </div>
-    );
-}
-
-function WeeklyDiet() {
-    return (
-        <div className="diet-card">
-            <h3>Weekly Trend</h3>
-            <p>Avg Calories per Day: <strong>1,900 kcal</strong></p>
-            <p>Highest Intake: <strong>2,200 kcal</strong> (Wednesday)</p>
-            <p>Lowest Intake: <strong>1,600 kcal</strong> (Saturday)</p>
-        </div>
-    );
-}
-
-function MonthlyDiet() {
-    return (
-        <div className="diet-card">
-            <h3>Monthly Trend</h3>
-            <p>Avg Calories per Day: <strong>1,850 kcal</strong></p>
-            <p>Most Consumed Food: <strong>Chicken Breast</strong></p>
-            <p>Most Indulgent Day: <strong>Feb 14 (Valentine's Day Cake 🎂)</strong></p>
-        </div>
-    );
-}
-
-function AnnualDiet() {
-    return (
-        <div className="diet-card">
-            <h3>Annual Overview</h3>
-            <p>Avg Calories per Month: <strong>1,875 kcal</strong></p>
-            <p>Most Healthy Month: <strong>September</strong></p>
-            <p>Most Indulgent Month: <strong>December (Holidays!)</strong></p>
-        </div>
     );
 }
 
