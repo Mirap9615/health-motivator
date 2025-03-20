@@ -1,6 +1,8 @@
 .hamburger-menu-container {
     position: fixed;
     display: flex;
+    top: 10px; 
+    left: 15px; 
     align-items: center;
     background-color: transparent;
     z-index: 1050;
@@ -12,9 +14,14 @@
     
 .hamburger-button {
     background-color: transparent;
-    background: transparent;
+    background: none;
+    border: none;
     z-index: 1060;
     font-size: inherit;
+}
+
+.hamburger-button:hover {
+    color: #007bff;
 }
 
 .hamburger-menu-container.menu-active {
@@ -111,7 +118,6 @@
     }
     .hamburger-menu-container {
         position: relative;
-        background-color: white;
     }
 }
 

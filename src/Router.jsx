@@ -4,6 +4,15 @@ import Dashboard from './Dashboard.jsx';
 import Diet from './Diet.jsx';
 import Fitness from './Fitness.jsx';
 import Import from './Import.jsx';
+<<<<<<< HEAD
+=======
+import Comparison from './Comparison.jsx';
+import Profile from './Profile.jsx';
+import Login from './Login.jsx';
+import Register from './Register.jsx';
+import Logout from './Logout.jsx';
+import About from './About.jsx';
+>>>>>>> 4153a456c082424e8f5a7f39ab59f874e6b0839d
 
 function AppRouter() {
     return (
@@ -14,6 +23,13 @@ function AppRouter() {
             <Route path="/import" element={<Import />} />
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/diet" element={<Diet />} /> 
+            <Route path="/import" element={<Import />} />
+            <Route path="/comparison" element={<Comparison />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<Dashboard />} />
         </Routes>
         </Router>

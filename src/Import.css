@@ -1,0 +1,82 @@
+.import-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .import-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  
+  .import-button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background 0.3s;
+  }
+  
+  .import-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .import-form {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    background: #f9f9f9;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+  }
+  
+  .import-form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  
+  .import-form input,
+  .import-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+  
+  .submit-button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100%;
+  }
+  
+  .submit-button:hover {
+    background-color: #218838;
+  }
+  
+  .cancel-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .cancel-button:hover {
+    background-color: #c82333;
+  }
+  
