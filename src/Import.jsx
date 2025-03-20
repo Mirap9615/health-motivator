@@ -1,9 +1,10 @@
 import React from 'react'
+import SideBar from './SideBar'
 
 function Import() {
   return (
-    <div>
-      Import
+    <div className='import-container'>
+      <SideBar />
     </div>
   )
 }
