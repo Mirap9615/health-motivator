@@ -1,14 +1,35 @@
-.hamburger-menu-container {
-    position: fixed;
-    display: flex;
-    top: 10px; 
-    left: 15px; 
-    align-items: center;
-    background-color: transparent;
+.nav-bar{
+    position: sticky;
+    top: 0;
+    right: 0;
+    left: 0;
     z-index: 1050;
     width: 100%;
-    font-size: 36px;
-    transform: translateX(0);
+    display: flex;
+    background-color: #383c3c;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    padding: 10px 20px;
+}
+
+.nav-bar .company-name{
+    font-size: 2rem;
+}
+
+.nav-item-list{
+    display: flex;
+    align-items: center;
+}
+
+.nav-item-list a{
+    margin: 0 10px;
+    font-size: 1.1 rem;
+}
+
+.hamburger-menu-container {
+    /* transform: translateX(0); */
+    background-color: grey;
     transition: transform 0.3s ease; 
 }
     
@@ -25,7 +46,8 @@
 }
 
 .hamburger-menu-container.menu-active {
-    transform: translateX(clamp(195px, 250px, 35vw));
+    display: block;
+    /* transform: translateX(clamp(195px, 250px, 35vw)); */
     transition: transform 0.3s ease;
 }
 
@@ -44,17 +66,17 @@
 
 .menu {
     position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
+    right: 0px;
+    top: 74px;
     width: clamp(195px, 250px, 35vw);
     background-color: white;  
-    transform: translateX(-100%);
+    transform: translateX(100%);
     transition: transform 0.3s ease;
     z-index: 1120;
     overflow: hidden; 
     border-right: solid black;
     text-align: center;
+    border-radius: 0 0 10px 10px;
 }
 
 .menu a {
@@ -64,15 +86,18 @@
     color: black;
     white-space: nowrap; 
     border: none;
-
 }
-
+.menu a:hover{
+    cursor: pointer;
+    opacity: 0.8;
+    background-color: grey;
+}
 .menu-active {
     transform: translateX(0); 
 }
 
 .backdrop {
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     width: 100%;
@@ -86,10 +111,6 @@
     display: block;
 }
 
-.another-section {
-    margin-top: 50px;
-    text-align: center;
-}
 
 .section-label {
     font-size: 0.8em;
@@ -127,6 +148,12 @@
 
 .burger {
     font-size: 36px;
+    margin-left: 10px;
+}
+
+.burger:hover{
+    cursor: pointer;
+    opacity: 0.8;
 }
 
 .logged-in-info {

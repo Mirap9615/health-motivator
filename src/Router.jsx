@@ -4,15 +4,12 @@ import Dashboard from './Dashboard.jsx';
 import Diet from './Diet.jsx';
 import Fitness from './Fitness.jsx';
 import Import from './Import.jsx';
-<<<<<<< HEAD
-=======
 import Comparison from './Comparison.jsx';
 import Profile from './Profile.jsx';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import Logout from './Logout.jsx';
 import About from './About.jsx';
->>>>>>> 4153a456c082424e8f5a7f39ab59f874e6b0839d
 
 function AppRouter() {
     return (

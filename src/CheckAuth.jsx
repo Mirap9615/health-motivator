@@ -2,16 +2,6 @@ const checkAuth = async () => {
     try {
         const response = await fetch("/api/auth/check-auth", { credentials: "include" });
 
-<<<<<<< HEAD
-function CheckAuth() {
-    return (
-        <>
-            
-        </>
-    );
-}
-export default CheckAuth;
-=======
         if (!response.ok) {
             throw new Error("Not authenticated");
         }
@@ -30,4 +20,3 @@ export default CheckAuth;
 };
 
 export default checkAuth;
->>>>>>> 4153a456c082424e8f5a7f39ab59f874e6b0839d

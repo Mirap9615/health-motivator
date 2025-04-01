@@ -47,37 +47,38 @@ const SideBar = () => {
   };
 
   return (
-    <div>
-      <div className={`hamburger-menu-container ${isOpen ? "menu-active" : ""}`}>
-        <button className={`hamburger-button ${isOpen ? "active" : ""}`} onClick={toggleMenu}>
-          <span className="burger">&#9776;</span> <span className="menu-text">Menu</span>
-        </button>
+    <>
+      <div className="nav-bar">
+        <p className="company-name">Health Motivator</p>
+        <div>
+          {isLoggedIn ? (
+            <div className="nav-item-list">
+              <a href="/dashboard">Dashboard</a>
+              <a href="/diet">Diet</a>
+              <a href="/fitness">Fitness</a>
+              <div className={`hamburger-menu-container ${isOpen ? "menu-active" : ""}`}>
+                <button className={`hamburger-button ${isOpen ? "active" : ""}`} onClick={toggleMenu}>
+                  { <span className="burger">&#9776;</span> /*<span className="menu-text">Menu</span> */}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="nav-item-list user-inactive">
+              <a href="/about">About</a>
+              <a href="/login">Login</a>
+            </div>
+          )}
+        </div>
+        {/* <div className={`backdrop ${isOpen ? "backdrop-active" : ""}`} onClick={toggleMenu}></div> */}
       </div>
       <div className={`menu ${isOpen ? "menu-active" : ""}`}>
-        {isLoggedIn ? (
-          <>
-            <a href="/dashboard">Dashboard</a>
-            <a href="/diet">Diet</a>
-            <a href="/fitness">Fitness</a>
-            <a href="#" onClick={handleLogout}>Logout</a>
-            <div className="logged-in-info">Logged in as {username}</div>
-
-            <div className="another-section">
-              <div className="section-label">Data</div>
-              <a href="/import">Import</a>
-              <a href="/comparison">Comparison</a>
-              <a href="/profile">Profile</a>
-            </div>
-          </>
-        ) : (
-          <>
-            <a href="/about">About</a>
-            <a href="/login">Login</a>
-          </>
-        )}
+        <div className="logged-in-info">Logged in as {username}</div>
+        <a href="/import">Import</a>
+        <a href="/comparison">Comparison</a>
+        <a href="/profile">Profile</a>
+        <a href="#" onClick={handleLogout}>Logout</a>
       </div>
-      <div className={`backdrop ${isOpen ? "backdrop-active" : ""}`} onClick={toggleMenu}></div>
-    </div>
+    </>
   );
 };
 

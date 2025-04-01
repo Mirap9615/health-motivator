@@ -128,10 +128,6 @@ const Import = () => {
     </>
   );
 };
-    <div className='import-container'>
-      <SideBar />
-    </div>
-  )
-}
+
 
 export default Import;

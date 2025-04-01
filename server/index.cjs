@@ -44,6 +44,8 @@ app.use("/api/entries", entryRoutes);
 
 app.listen(port, () => {
 console.log(`Server listening on ${port}`);
+console.log(process.env.SESSION_SECRET);
+
 });
 
 app.use(express.static(path.join(__dirname, '../dist')));

@@ -2,6 +2,11 @@ import React, { useState, useEffect } from "react";
 import SideBar from "./SideBar.jsx";
 import { Card, Title, Text, Progress, Grid } from "@mantine/core";
 import "./Dashboard.css";
+import DashboardPie from "./DashboardPie.jsx";
+import DashboardChecklist from "./DashboardChecklist.jsx";
+import DashboardBar from "./DashboardBar.jsx";
+
+
 
 const DAILY_CALORIE_GOAL = 2500;
 const WORKOUT_GOAL_MINUTES = 40;
@@ -10,6 +15,7 @@ const STEP_GOAL = 8000;
 const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [healthScore, setHealthScore] = useState(0);
+  const [selected, setSelected] = useState('daily');
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,19 +52,42 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <SideBar />
       <div className="dashboard-content">
-        <Title order={1} className="dashboard-title">Dashboard</Title>
+        <div className="dashboard-grid-container">
+            <div className="left cell">
+                <div className="toggle-container">
+                    <button className={`toggle-btn ${selected === 'daily' ? 'active' : ''}`} onClick={() => setSelected('daily')}>
+                        Daily
+                    </button>
+                    <button className={`toggle-btn ${selected === 'weekly' ? 'active' : ''}`} onClick={() => setSelected('weekly')}>
+                        Weekly
+                    </button>
+                </div>
+                <h3 style={{textAlign: "center"}}>{selected === "daily" ? "Daily": "Weekly"} Macros Count</h3>
+                <DashboardPie />
+            </div>
+            <div className="cell middle top">
+                <Title order={1} className="dashboard-title">Dashboard</Title>
+                <Card shadow="sm" padding="lg" className="health-score-card">
+                    <Title order={3} className="section-title">Your Health Scores</Title>
+                    <div className="progress-container">
+                        <Progress value={healthScore} size="lg" color="green" />
+                        <Text className="progress-label">{healthScore}/100</Text>
+                    </div>
+                    <Text color="dimmed" size="sm">Based on your recent activity and diet.</Text>
+                </Card>
+            </div>
+            <div className="cell middle bottom">
 
-        <Card shadow="sm" padding="lg" className="health-score-card">
-          <Title order={3} className="section-title">Your Health Score</Title>
-          <div className="progress-container">
-            <Progress value={healthScore} size="lg" color="green" />
-            <Text className="progress-label">{healthScore}/100</Text>
-          </div>
-          <Text color="dimmed" size="sm">Based on your recent activity and diet.</Text>
-        </Card>
+                <DashboardBar dataLabel="Exercise (cal)" dataColor="#8884d8"/>
 
-        <Grid gutter="md" className="dashboard-grid">
-          <Grid.Col span={6}>
+                <DashboardBar dataLabel="Diet (cal)" dataColor="#2864d8"/>
+            </div>
+            <div className="right cell">
+                <DashboardChecklist />
+            </div>
+        </div>
+        {/* <Grid columns={24} gutter="md" className="dashboard-grid">
+          <Grid.Col span={{ base: 24, sm: 12, md: 8 }}>
             <Card shadow="sm" padding="lg" className="dashboard-card">
               <Title order={4} className="section-title">Exercise Tracking</Title>
               <Text>Steps Today: <strong>{Math.round(userData.steps)}</strong></Text>
@@ -67,7 +96,7 @@ const Dashboard = () => {
             </Card>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={{ base: 24, sm: 12, md: 8 }}>
             <Card shadow="sm" padding="lg" className="dashboard-card">
               <Title order={4} className="section-title">Diet Tracking</Title>
               <Text>Calories Consumed: <strong>{Math.round(userData.calories)} kcal</strong></Text>
@@ -77,15 +106,16 @@ const Dashboard = () => {
             </Card>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={{ base: 24, sm: 12, md: 8 }}>
             <Card shadow="sm" padding="lg" className="dashboard-card">
               <Title order={4} className="section-title">Daily Goals</Title>
               <Text>Steps Goal: <strong>{userData.steps >= STEP_GOAL ? "✅ Completed" : "⚠️ Incomplete"}</strong></Text>
               <Text>Workout Goal: <strong>{userData.duration_min >= WORKOUT_GOAL_MINUTES ? "✅ Completed" : "⚠️ Incomplete"}</strong></Text>
               <Text>Calorie Target: <strong>{calorieStatus}</strong></Text>
             </Card>
-          </Grid.Col>
-        </Grid>
+          </Grid.Col> */}
+
+        {/* </Grid> */}
       </div>
     </div>
   );
