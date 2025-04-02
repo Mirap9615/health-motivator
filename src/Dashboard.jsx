@@ -5,8 +5,8 @@ import "./Dashboard.css";
 import DashboardPie from "./DashboardPie.jsx";
 import DashboardChecklist from "./DashboardChecklist.jsx";
 import DashboardBar from "./DashboardBar.jsx";
-
-
+import DashboardHealthScore from "./DashboardHealthScore.jsx";
+//const DashboardHealthScore = React.lazy(() => import("./DashboardHealthScore.jsx"));
 
 const DAILY_CALORIE_GOAL = 2500;
 const WORKOUT_GOAL_MINUTES = 40;
@@ -67,19 +67,10 @@ const Dashboard = () => {
             </div>
             <div className="cell middle top">
                 <Title order={1} className="dashboard-title">Dashboard</Title>
-                <Card shadow="sm" padding="lg" className="health-score-card">
-                    <Title order={3} className="section-title">Your Health Scores</Title>
-                    <div className="progress-container">
-                        <Progress value={healthScore} size="lg" color="green" />
-                        <Text className="progress-label">{healthScore}/100</Text>
-                    </div>
-                    <Text color="dimmed" size="sm">Based on your recent activity and diet.</Text>
-                </Card>
+                <DashboardHealthScore score={healthScore} />
             </div>
             <div className="cell middle bottom">
-
                 <DashboardBar dataLabel="Exercise (cal)" dataColor="#8884d8"/>
-
                 <DashboardBar dataLabel="Diet (cal)" dataColor="#2864d8"/>
             </div>
             <div className="right cell">
