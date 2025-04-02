@@ -1,7 +1,9 @@
 .checklist-container {
   /* Main container styles */
 }
-
+.checklist-goals-title {
+    margin-top: 20px;
+}
 .tab-container {
   display: flex;
   margin: 20px 0;

@@ -10,6 +10,90 @@
     margin-bottom: 20px;
 }
 
+/* Main tab navigation */
+.fitness-main-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 25px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    padding: 4px;
+    width: fit-content;
+    position: relative;
+}
+
+.fitness-main-tab {
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 500;
+    z-index: 2;
+    position: relative;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.fitness-main-tab.active {
+    color: white;
+}
+
+/* Tab indicator slider */
+.tab-indicator {
+    position: absolute;
+    height: 80%;
+    background-color: #333;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    top: 10%;
+    z-index: 1;
+}
+
+/* Chart and time tabs layout */
+.fitness-chart-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.fitness-chart {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
+}
+
+/* Time period tabs - vertical on the right */
+.fitness-time-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+}
+
+.fitness-time-tabs button {
+    padding: 12px 15px;
+    border: none;
+    background-color: #e0e0e0;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    text-align: center;
+}
+
+.fitness-time-tabs button.active {
+    background-color: #ff5733;
+    color: white;
+    font-weight: bold;
+}
+
 .fitness-tabs {
     display: flex;
     gap: 10px;
@@ -30,32 +114,149 @@
     color: white;
 }
 
-.fitness-chart {
-    margin-bottom: 20px;
+.fitness-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
 }
 
 .fitness-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-  }
+}
   
-  .fitness-table th, .fitness-table td {
+.fitness-table th, .fitness-table td {
     padding: 10px;
     text-align: center;
     border: 1px solid #ddd;
-  }
+}
   
-  .fitness-table th {
+.fitness-table th {
     background-color: #ff5733;
     color: white;
-  }
+}
   
-  .fitness-table tr:nth-child(even) {
+.fitness-table tr:nth-child(even) {
     background-color: #f9f9f9;
-  }
+}
   
-  .fitness-table tr:hover {
+.fitness-table tr:hover {
     background-color: #f1f1f1;
-  }
+}
+
+/* Summary table styles */
+.fitness-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.fitness-summary-table th, 
+.fitness-summary-table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.fitness-summary-table th {
+    background-color: #f0f0f0;
+    color: #333;
+    font-weight: bold;
+}
+
+.fitness-summary-table th:first-child,
+.fitness-summary-table td:first-child {
+    text-align: left;
+    width: 100px;
+}
+
+.fitness-summary-table tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+.fitness-summary {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.fitness-summary h2 {
+    margin-bottom: 10px;
+}
+
+.fitness-summary p {
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+.fitness-overview-content {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Log filter styles */
+.log-filter-container {
+    margin-bottom: 20px;
+}
+
+.period-filter {
+    display: flex;
+    width: 100%;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+
+.period-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    cursor: pointer;
+    border-right: 1px solid #ddd;
+    transition: background-color 0.3s;
+    background-color: #f8f8f8;
+    font-weight: 500;
+}
+
+.period-option:last-child {
+    border-right: none;
+}
+
+.period-option.active.fitness-period{
+    background-color: #ff5733;
+    color: white;
+}
+
+.period-option:hover:not(.active) {
+    background-color: #e6e6e6;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+}
+
+.date-selector label {
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.date-selector input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex: 1;
+}
   

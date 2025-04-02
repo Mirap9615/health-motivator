@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import './DashboardChecklist.css';
 
 const DashboardChecklist = () => {
-  const initialTasks = [
-    { id: 1, text: 'Task 1', completed: false },
-    { id: 2, text: 'Task 2', completed: false },
-    { id: 3, text: 'Task 3', completed: false },
+  const dailyTasks = [
+    { id: 1, text: 'Complete 30 minutes of cardio', completed: false },
+    { id: 2, text: 'Eat 5 servings of vegetables', completed: false },
+    { id: 3, text: 'Drink 8 glasses of water', completed: false },
+  ];
+
+  const weeklyTasks = [
+    { id: 1, text: 'Complete 3 strength training sessions', completed: false },
+    { id: 2, text: 'Try one new healthy recipe', completed: false },
+    { id: 3, text: 'Take a rest day', completed: false },
+    { id: 4, text: 'Track all meals for the week', completed: false },
   ];
 
   const dailyRecommendations = [
@@ -20,22 +27,35 @@ const DashboardChecklist = () => {
     "Take one day for active recovery"
   ];
 
-  const [tasks, setTasks] = useState(initialTasks);
   const [selected, setSelected] = useState('daily');
   const [recommendationView, setRecommendationView] = useState('daily');
+  
+  const [dailyTasksState, setDailyTasksState] = useState(dailyTasks);
+  const [weeklyTasksState, setWeeklyTasksState] = useState(weeklyTasks);
 
-  const toggleTaskCompletion = (taskId) => {
-    setTasks((prevTasks) =>
+  const toggleDailyTaskCompletion = (taskId) => {
+    setDailyTasksState((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       )
     );
   };
 
-  const completedTaskCount = tasks.filter((task) => task.completed).length;
+  const toggleWeeklyTaskCompletion = (taskId) => {
+    setWeeklyTasksState((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
 
+  const currentTasks = selected === 'daily' ? dailyTasksState : weeklyTasksState;
+  const toggleTaskCompletion = selected === 'daily' ? toggleDailyTaskCompletion : toggleWeeklyTaskCompletion;
+  const completedTaskCount = currentTasks.filter((task) => task.completed).length;
+  
   return (
     <div className="checklist-container">
+      <h2 className="checklist-goals-title">Goals</h2>
       <div className="tab-container">
         <button 
           className={`tab-button ${selected === 'daily' ? 'tab-active' : 'tab-inactive'}`}
@@ -51,9 +71,8 @@ const DashboardChecklist = () => {
         </button>
       </div>
       
-      <h2>Workout/Diet Checklist ({selected === 'daily' ? 'Daily' : 'Weekly'})</h2>
       <ul className="task-list">
-        {tasks.map((task) => (
+        {currentTasks.map((task) => (
           <li key={task.id} className="task-item">
             <label>
               <input
@@ -69,7 +88,7 @@ const DashboardChecklist = () => {
         ))}
       </ul>
       <p className="task-summary">
-        Completed tasks: {completedTaskCount} / {tasks.length}
+        Completed tasks: {completedTaskCount} / {currentTasks.length}
       </p>
 
       {/* Recommendations Section */}

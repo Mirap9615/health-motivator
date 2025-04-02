@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import './Diet.css';
 
 function Diet() {
-    const [activeTab, setActiveTab] = useState('daily');
+    const [activeMainTab, setActiveMainTab] = useState('overview');
+    const [activeTimeTab, setActiveTimeTab] = useState('daily');
     const [dietData, setDietData] = useState([]);
     const [processedData, setProcessedData] = useState({
         daily: [],
@@ -12,6 +13,9 @@ function Diet() {
         monthly: [],
         annual: [],
     });
+    const overviewTabRef = useRef(null);
+    const pastLogTabRef = useRef(null);
+    const [indicatorStyle, setIndicatorStyle] = useState({});
 
     const [summaryData, setSummaryData] = useState({
         totalCalories: 0,
@@ -35,8 +39,23 @@ function Diet() {
     }, []);
 
     useEffect(() => {
-        updateSummaryData(processedData[activeTab]);
-    }, [activeTab, processedData]);    
+        // Update the sliding indicator position when the active tab changes
+        if (activeMainTab === 'overview' && overviewTabRef.current) {
+            setIndicatorStyle({
+                width: overviewTabRef.current.offsetWidth,
+                left: overviewTabRef.current.offsetLeft,
+            });
+        } else if (activeMainTab === 'pastLog' && pastLogTabRef.current) {
+            setIndicatorStyle({
+                width: pastLogTabRef.current.offsetWidth,
+                left: pastLogTabRef.current.offsetLeft,
+            });
+        }
+    }, [activeMainTab]);
+
+    useEffect(() => {
+        updateSummaryData(processedData[activeTimeTab]);
+    }, [activeTimeTab, processedData]);    
 
     const processDietData = (data) => {
         if (!data.length) return;
@@ -218,60 +237,289 @@ function Diet() {
         return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     };
 
+    // Helper function to get time period label based on active tab
+    const getTimePeriodLabel = () => {
+        switch(activeTimeTab) {
+            case 'weekly':
+                return '(Daily)';
+            case 'monthly':
+                return '(Monthly)';
+            case 'annual':
+                return '(Annually)';
+            default:
+                return '';
+        }
+    };
+
     return (
         <>
             <SideBar />
             <div className="diet-container">
-                <h1 className="dashboard-title">Diet Overview</h1>
+                <h1 className="diet-title">Diet Overview</h1>
 
-                <div className="diet-chart">
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={processedData[activeTab]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey={activeTab === 'daily' ? 'time' : activeTab === 'weekly' ? 'date' : activeTab === 'monthly' ? 'month' : 'year'} />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
+                <div className="diet-main-tabs">
+                    <div 
+                        ref={overviewTabRef}
+                        className={`diet-main-tab ${activeMainTab === 'overview' ? 'active' : ''}`}
+                        onClick={() => setActiveMainTab('overview')}
+                    >
+                        Overview
+                    </div>
+                    <div 
+                        ref={pastLogTabRef}
+                        className={`diet-main-tab ${activeMainTab === 'pastLog' ? 'active' : ''}`}
+                        onClick={() => setActiveMainTab('pastLog')}
+                    >
+                        Past Log
+                    </div>
+                    <div className="tab-indicator" style={indicatorStyle}></div>
                 </div>
 
-                <div className="diet-tabs">
-                    <button onClick={() => setActiveTab('daily')} className={activeTab === 'daily' ? 'active' : ''}>Daily</button>
-                    <button onClick={() => setActiveTab('weekly')} className={activeTab === 'weekly' ? 'active' : ''}>Weekly</button>
-                    <button onClick={() => setActiveTab('monthly')} className={activeTab === 'monthly' ? 'active' : ''}>Monthly</button>
-                    <button onClick={() => setActiveTab('annual')} className={activeTab === 'annual' ? 'active' : ''}>Annual</button>
-                    <button onClick={() => setActiveTab('past')} className={activeTab === 'past' ? 'active' : ''}>Past Data</button>
-                </div>
+                {activeMainTab === 'overview' && (
+                    <div className="diet-overview-content">
+                        <div className="diet-chart-container">
+                            <div className="diet-chart">
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <LineChart data={processedData[activeTimeTab]}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey={activeTimeTab === 'daily' ? 'time' : activeTimeTab === 'weekly' ? 'date' : activeTimeTab === 'monthly' ? 'month' : 'year'} />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                            
+                            <div className="diet-time-tabs">
+                                <button onClick={() => setActiveTimeTab('daily')} className={activeTimeTab === 'daily' ? 'active' : ''}>Daily</button>
+                                <button onClick={() => setActiveTimeTab('weekly')} className={activeTimeTab === 'weekly' ? 'active' : ''}>Weekly</button>
+                                <button onClick={() => setActiveTimeTab('monthly')} className={activeTimeTab === 'monthly' ? 'active' : ''}>Monthly</button>
+                                <button onClick={() => setActiveTimeTab('annual')} className={activeTimeTab === 'annual' ? 'active' : ''}>Annual</button>
+                            </div>
+                        </div>
 
-                {activeTab !== 'past' && (
-                <div className="diet-summary">
-                <h2>Summary ({activeTab.charAt(0).toUpperCase() + activeTab.slice(1)})</h2>
-                <p><strong>Total Calories:</strong> {summaryData.totalCalories}</p>
-                {activeTab !== 'daily' && <p><strong>Average Calories Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgCalories).toFixed(2)}</p>}
-                <p><strong>Total Protein:</strong> {summaryData.totalProtein}g</p>
-                {activeTab !== 'daily' && <p><strong>Average Protein Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgProtein).toFixed(2)}g</p>}
-                <p><strong>Total Carbs:</strong> {summaryData.totalCarbs}g</p>
-                {activeTab !== 'daily' && <p><strong>Average Carbs Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgCarbs).toFixed(2)}g</p>}
-                <p><strong>Total Fats:</strong> {summaryData.totalFats}g</p>
-                {activeTab !== 'daily' && <p><strong>Average Fats Per {activeTab === 'weekly' ? 'Day' : activeTab === 'monthly' ? 'Month' : 'Year'}:</strong> {Number(summaryData.avgFats).toFixed(2)}g</p>}
-            </div>            
+                        <div className="diet-summary">
+                            <h2>Summary ({activeTimeTab.charAt(0).toUpperCase() + activeTimeTab.slice(1)})</h2>
+                            
+                            {activeTimeTab === 'daily' ? (
+                                <table className="diet-summary-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Calories</th>
+                                            <th>Protein (g)</th>
+                                            <th>Carbs (g)</th>
+                                            <th>Fats (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Total</strong></td>
+                                            <td>{Math.round(summaryData.totalCalories)}</td>
+                                            <td>{Math.round(summaryData.totalProtein)}</td>
+                                            <td>{Math.round(summaryData.totalCarbs)}</td>
+                                            <td>{Math.round(summaryData.totalFats)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <table className="diet-summary-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>Calories</th>
+                                            <th>Protein (g)</th>
+                                            <th>Carbs (g)</th>
+                                            <th>Fats (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Total</strong></td>
+                                            <td>{Math.round(summaryData.totalCalories)}</td>
+                                            <td>{Math.round(summaryData.totalProtein)}</td>
+                                            <td>{Math.round(summaryData.totalCarbs)}</td>
+                                            <td>{Math.round(summaryData.totalFats)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Average {getTimePeriodLabel()}</strong></td>
+                                            <td>{Number(summaryData.avgCalories).toFixed(1)}</td>
+                                            <td>{Number(summaryData.avgProtein).toFixed(1)}</td>
+                                            <td>{Number(summaryData.avgCarbs).toFixed(1)}</td>
+                                            <td>{Number(summaryData.avgFats).toFixed(1)}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
                 )}
 
-                <div className="diet-content">
-                    {activeTab === 'past' && <PastDiet pastData={dietData} />}
-                </div>
+                {activeMainTab === 'pastLog' && (
+                    <PastDiet pastData={dietData} />
+                )}
             </div>
         </>
     );
 }
 
 function PastDiet({ pastData }) {
+    const [periodFilter, setPeriodFilter] = useState('all');
+    const [filteredData, setFilteredData] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    
+    // Filter data based on selected period and date
+    useEffect(() => {
+        if (!pastData.length) {
+            setFilteredData([]);
+            return;
+        }
+        
+        let filtered = [...pastData];
+        const now = new Date(selectedDate);
+        
+        // Start by sorting all data by date (newest first)
+        filtered.sort((a, b) => new Date(b.entry_time) - new Date(a.entry_time));
+        
+        switch (periodFilter) {
+            case 'daily':
+                // Filter to show only entries from the selected day
+                filtered = filtered.filter(entry => {
+                    const entryDate = new Date(entry.entry_time);
+                    return entryDate.getDate() === now.getDate() && 
+                           entryDate.getMonth() === now.getMonth() && 
+                           entryDate.getFullYear() === now.getFullYear();
+                });
+                break;
+                
+            case 'weekly':
+                // Filter to show only entries from the selected week
+                const weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - now.getDay()); // Start of the week (Sunday)
+                weekStart.setHours(0, 0, 0, 0);
+                
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6); // End of the week (Saturday)
+                weekEnd.setHours(23, 59, 59, 999);
+                
+                filtered = filtered.filter(entry => {
+                    const entryDate = new Date(entry.entry_time);
+                    return entryDate >= weekStart && entryDate <= weekEnd;
+                });
+                break;
+                
+            case 'monthly':
+                // Filter to show only entries from the selected month
+                filtered = filtered.filter(entry => {
+                    const entryDate = new Date(entry.entry_time);
+                    return entryDate.getMonth() === now.getMonth() && 
+                           entryDate.getFullYear() === now.getFullYear();
+                });
+                break;
+                
+            case 'annual':
+                // Filter to show only entries from the selected year
+                filtered = filtered.filter(entry => {
+                    const entryDate = new Date(entry.entry_time);
+                    return entryDate.getFullYear() === now.getFullYear();
+                });
+                break;
+                
+            case 'all':
+            default:
+                // No additional filtering needed
+                break;
+        }
+        
+        setFilteredData(filtered);
+    }, [pastData, periodFilter, selectedDate]);
+    
+    // Handle date selection change
+    const handleDateChange = (e) => {
+        setSelectedDate(new Date(e.target.value));
+    };
+    
+    // Get appropriate date input type and value based on period filter
+    const getDatePickerProps = () => {
+        const dateValue = selectedDate.toISOString().split('T')[0];
+        
+        switch (periodFilter) {
+            case 'daily':
+                return { type: 'date', value: dateValue };
+            case 'weekly':
+                return { type: 'week', value: `${selectedDate.getFullYear()}-W${getWeekNumber(selectedDate)}` };
+            case 'monthly':
+                return { type: 'month', value: `${dateValue.substring(0, 7)}` };
+            case 'annual':
+                return { type: 'number', value: selectedDate.getFullYear(), min: 2000, max: 2100 };
+            default:
+                return { type: 'date', value: dateValue };
+        }
+    };
+    
+    // Get week number for a date
+    const getWeekNumber = (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    };
+
     return (
         <div className="diet-card">
             <h3>Past Diet Entries</h3>
-            {pastData.length === 0 ? (
-                <p>No past diet entries found.</p>
+            
+            <div className="log-filter-container">
+                <div className="period-filter">
+                    <div 
+                        className={`period-option ${periodFilter === 'daily' ? 'active' : ''} diet-period`}
+                        onClick={() => setPeriodFilter('daily')}
+                    >
+                        Daily
+                    </div>
+                    <div 
+                        className={`period-option ${periodFilter === 'weekly' ? 'active' : ''} diet-period`}
+                        onClick={() => setPeriodFilter('weekly')}
+                    >
+                        Weekly
+                    </div>
+                    <div 
+                        className={`period-option ${periodFilter === 'monthly' ? 'active' : ''} diet-period`}
+                        onClick={() => setPeriodFilter('monthly')}
+                    >
+                        Monthly
+                    </div>
+                    <div 
+                        className={`period-option ${periodFilter === 'annual' ? 'active' : ''} diet-period`}
+                        onClick={() => setPeriodFilter('annual')}
+                    >
+                        Annual
+                    </div>
+                    <div 
+                        className={`period-option ${periodFilter === 'all' ? 'active' : ''} diet-period`}
+                        onClick={() => setPeriodFilter('all')}
+                    >
+                        All
+                    </div>
+                </div>
+                
+                {periodFilter !== 'all' && (
+                    <div className="date-selector">
+                        <label>Select {periodFilter.charAt(0).toUpperCase() + periodFilter.slice(1)}:</label>
+                        <input 
+                            type={getDatePickerProps().type}
+                            value={getDatePickerProps().value}
+                            min={getDatePickerProps().min}
+                            max={getDatePickerProps().max}
+                            onChange={handleDateChange}
+                        />
+                    </div>
+                )}
+            </div>
+            
+            {filteredData.length === 0 ? (
+                <p>No diet entries found for the selected period.</p>
             ) : (
                 <table className="diet-table">
                     <thead>
@@ -285,7 +533,7 @@ function PastDiet({ pastData }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {pastData.map((entry, index) => (
+                        {filteredData.map((entry, index) => (
                             <tr key={index}>
                                 <td>{entry.meal_type}</td>
                                 <td>{entry.calories}</td>
