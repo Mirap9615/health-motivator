@@ -67,53 +67,74 @@ function Diet() {
             return entryDate >= past365Days && entryDate <= now;
         });
     
-        // DAILY
-        const pastNDays = 7; 
+        // DAILY (24 hours)
         const dailyGraphData = {};
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const hourlyData = {};
 
-        for (let i = 0; i < pastNDays; i++) {
+        // Initialize hourly slots for the past 24 hours
+        for (let i = 0; i < 24; i++) {
+            const hour = new Date(now);
+            hour.setHours(now.getHours() - i);
+            const hourKey = hour.toISOString().split(':')[0] + ':00';
+            hourlyData[hourKey] = { 
+                time: hourKey,
+                calories: 0, 
+                protein: 0, 
+                carbs: 0, 
+                fats: 0 
+            };
+        }
+
+        // Process last 24 hours data
+        filteredDailyData.forEach(entry => {
+            const entryDate = new Date(entry.entry_time);
+            const hourKey = entryDate.toISOString().split(':')[0] + ':00';
+            
+            if (hourlyData[hourKey]) {
+                hourlyData[hourKey].calories += Number(entry.calories) || 0;
+                hourlyData[hourKey].protein += Number(entry.protein_g) || 0;
+                hourlyData[hourKey].carbs += Number(entry.carbs_g) || 0;
+                hourlyData[hourKey].fats += Number(entry.fats_g) || 0;
+            }
+        });
+
+        const sortedHourlyData = Object.values(hourlyData).sort((a, b) => 
+            new Date(a.time) - new Date(b.time)
+        );
+
+        // WEEKLY (7 days)
+        const weeklyGraphData = {};
+        
+        // Initialize the past 7 days
+        for (let i = 0; i < 7; i++) {
             const date = new Date();
             date.setDate(now.getDate() - i);
             const dateKey = date.toISOString().split('T')[0];
-
-            dailyGraphData[dateKey] = { date: dateKey, calories: 0, protein: 0, carbs: 0, fats: 0 };
+            
+            weeklyGraphData[dateKey] = { 
+                date: dateKey, 
+                calories: 0, 
+                protein: 0, 
+                carbs: 0, 
+                fats: 0 
+            };
         }
 
-        data.forEach(entry => {
-            const entryDate = new Date(entry.entry_time).toISOString().split('T')[0];
-            if (dailyGraphData[entryDate]) {
-                dailyGraphData[entryDate].calories += Number(entry.calories) || 0;
-                dailyGraphData[entryDate].protein += Number(entry.protein_g) || 0;
-                dailyGraphData[entryDate].carbs += Number(entry.carbs_g) || 0;
-                dailyGraphData[entryDate].fats += Number(entry.fats_g) || 0;
-            }
-        });
-
-        const sortedDailyGraphData = Object.values(dailyGraphData).sort((a, b) => a.date.localeCompare(b.date));
-    
-        const pastNWeeks = 7;
-        const weeklyGraphData = [];
-
-        for (let i = pastNWeeks - 1; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(now.getDate() - i * 7);  
-            const weekKey = `${date.getFullYear()}-W${getWeekNumber(date)}`;
-
-            weeklyGraphData.push({ week: weekKey, calories: 0, protein: 0, carbs: 0, fats: 0 });
-        }
-
+        // Process weekly data
         filteredWeeklyData.forEach(entry => {
-            const date = new Date(entry.entry_time);
-            const weekKey = `${date.getFullYear()}-W${getWeekNumber(date)}`;
-            const foundEntry = weeklyGraphData.find(d => d.week === weekKey);
-
-            if (foundEntry) {
-                foundEntry.calories += Number(entry.calories) || 0;
-                foundEntry.protein += Number(entry.protein_g) || 0;
-                foundEntry.carbs += Number(entry.carbs_g) || 0;
-                foundEntry.fats += Number(entry.fats_g) || 0;
+            const entryDate = new Date(entry.entry_time).toISOString().split('T')[0];
+            if (weeklyGraphData[entryDate]) {
+                weeklyGraphData[entryDate].calories += Number(entry.calories) || 0;
+                weeklyGraphData[entryDate].protein += Number(entry.protein_g) || 0;
+                weeklyGraphData[entryDate].carbs += Number(entry.carbs_g) || 0;
+                weeklyGraphData[entryDate].fats += Number(entry.fats_g) || 0;
             }
         });
+
+        const sortedWeeklyData = Object.values(weeklyGraphData)
+            .sort((a, b) => a.date.localeCompare(b.date));
     
         // MONTHLY
         const monthlyStats = {};
@@ -148,8 +169,8 @@ function Diet() {
         });
     
         setProcessedData({
-            daily: sortedDailyGraphData,
-            weekly: weeklyGraphData,
+            daily: sortedHourlyData,
+            weekly: sortedWeeklyData,
             monthly: Object.values(monthlyStats),
             annual: Object.values(annualStats),
         });
@@ -207,7 +228,7 @@ function Diet() {
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={processedData[activeTab]}>
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey={activeTab === 'daily' ? 'date' : activeTab === 'weekly' ? 'week' : activeTab === 'monthly' ? 'month' : 'year'} />
+                            <XAxis dataKey={activeTab === 'daily' ? 'time' : activeTab === 'weekly' ? 'date' : activeTab === 'monthly' ? 'month' : 'year'} />
                             <YAxis />
                             <Tooltip />
                             <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
