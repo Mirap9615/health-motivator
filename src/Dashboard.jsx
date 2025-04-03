@@ -12,27 +12,43 @@ const DAILY_CALORIE_GOAL = 2500;
 const WORKOUT_GOAL_MINUTES = 40;
 const STEP_GOAL = 8000;
 
+// Day names for the bar charts
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [healthScore, setHealthScore] = useState(0);
   const [selected, setSelected] = useState('daily');
+  const [fitnessData, setFitnessData] = useState([]);
+  const [dietData, setDietData] = useState([]);
+  const [fitnessChartData, setFitnessChartData] = useState([]);
+  const [dietChartData, setDietChartData] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Fetch fitness data
         const fitnessRes = await fetch("/api/entries/fitness/past");
-        const fitnessData = await fitnessRes.json();
+        const fitnessDataResponse = await fitnessRes.json();
+        setFitnessData(fitnessDataResponse);
         
+        // Fetch diet data
         const dietRes = await fetch("/api/entries/diet/past");
-        const dietData = await dietRes.json();
+        const dietDataResponse = await dietRes.json();
+        setDietData(dietDataResponse);
 
-        const fitnessSummary = calculateDailyAverages(fitnessData, ["steps", "duration_min", "calories_burned"]);
-        const dietSummary = calculateDailyAverages(dietData, ["calories", "protein_g", "carbs_g", "fats_g"]);
+        // Calculate summary statistics
+        const fitnessSummary = calculateDailyAverages(fitnessDataResponse, ["steps", "duration_min", "calories_burned"]);
+        const dietSummary = calculateDailyAverages(dietDataResponse, ["calories", "protein_g", "carbs_g", "fats_g"]);
 
         const userStats = { ...fitnessSummary, ...dietSummary };
         setUserData(userStats);
 
+        // Calculate health score
         setHealthScore(computeHealthScore(userStats));
+
+        // Process data for charts
+        processChartData(fitnessDataResponse, dietDataResponse);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -40,6 +56,68 @@ const Dashboard = () => {
 
     fetchUserData();
   }, []);
+
+  // Process the raw data into the format needed for the bar charts
+  const processChartData = (fitnessEntries, dietEntries) => {
+    // Get dates for the past week (Sunday to Saturday)
+    const today = new Date();
+    const pastWeekDates = [];
+    
+    // Start from today and go back 6 days to get a full week
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      pastWeekDates.unshift(date); // Add to beginning so oldest is first
+    }
+    
+    // Sort the dates to ensure Sunday is first, then Monday, etc.
+    pastWeekDates.sort((a, b) => a.getDay() - b.getDay());
+    
+    // Initialize chart data with days of the week
+    const fitnessChart = DAY_NAMES.map(day => ({ day, calories: 0 }));
+    const dietChart = DAY_NAMES.map(day => ({ day, calories: 0 }));
+    
+    // Process fitness data
+    if (fitnessEntries && fitnessEntries.length > 0) {
+      fitnessEntries.forEach(entry => {
+        const entryDate = new Date(entry.entry_time);
+        const dayOfWeek = entryDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        
+        // Check if entry is within the past week
+        const isWithinPastWeek = pastWeekDates.some(date => 
+          date.getDate() === entryDate.getDate() && 
+          date.getMonth() === entryDate.getMonth() && 
+          date.getFullYear() === entryDate.getFullYear()
+        );
+        
+        if (isWithinPastWeek) {
+          fitnessChart[dayOfWeek].calories += Number(entry.calories_burned) || 0;
+        }
+      });
+    }
+    
+    // Process diet data
+    if (dietEntries && dietEntries.length > 0) {
+      dietEntries.forEach(entry => {
+        const entryDate = new Date(entry.entry_time);
+        const dayOfWeek = entryDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        
+        // Check if entry is within the past week
+        const isWithinPastWeek = pastWeekDates.some(date => 
+          date.getDate() === entryDate.getDate() && 
+          date.getMonth() === entryDate.getMonth() && 
+          date.getFullYear() === entryDate.getFullYear()
+        );
+        
+        if (isWithinPastWeek) {
+          dietChart[dayOfWeek].calories += Number(entry.calories) || 0;
+        }
+      });
+    }
+    
+    setFitnessChartData(fitnessChart);
+    setDietChartData(dietChart);
+  };
 
   if (!userData) {
     return <div>Loading...</div>;
@@ -63,15 +141,28 @@ const Dashboard = () => {
                     </button>
                 </div>
                 <h3 style={{textAlign: "center"}}>{selected === "daily" ? "Daily": "Weekly"} Macros Count</h3>
-                <DashboardPie />
+                <DashboardPie timeView={selected} />
             </div>
             <div className="cell middle top">
-                <Title order={1} className="dashboard-title">Dashboard</Title>
                 <DashboardHealthScore score={healthScore} />
             </div>
             <div className="cell middle bottom">
-                <DashboardBar dataLabel="Exercise (cal)" dataColor="#8884d8"/>
-                <DashboardBar dataLabel="Diet (cal)" dataColor="#2864d8"/>
+                <div className="chart-grid">
+                    <div className="chart-wrapper">
+                        <DashboardBar 
+                          dataLabel="Exercise (cal)" 
+                          dataColor="#8884d8" 
+                          chartData={fitnessChartData}
+                        />
+                    </div>
+                    <div className="chart-wrapper">
+                        <DashboardBar 
+                          dataLabel="Diet (cal)" 
+                          dataColor="#2864d8" 
+                          chartData={dietChartData}
+                        />
+                    </div>
+                </div>
             </div>
             <div className="right cell">
                 <DashboardChecklist />

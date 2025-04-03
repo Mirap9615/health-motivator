@@ -2,11 +2,11 @@
   /* Main container styles */
 }
 .checklist-goals-title {
-    margin-top: 20px;
+    margin-top: 10px;
 }
 .tab-container {
   display: flex;
-  margin: 20px 0;
+  margin: 10px 0;
   padding: 10px;
   border-radius: 4px;
   overflow: hidden;

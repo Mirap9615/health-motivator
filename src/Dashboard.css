@@ -7,13 +7,6 @@
 }
 
 
-.dashboard-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 20px 0px;
-  text-align: center;
-}
-
 .health-score-card {
   background: white;
   padding: 20px;
@@ -45,7 +38,7 @@
   display: grid;
   width: 98vw;
   height: 90vh;
-  grid-template-columns: repeat(4, auto);
+  grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto auto;
   grid-template-areas:
     "a b b c"
@@ -81,7 +74,7 @@
 .right.cell {
   grid-area: c;
   padding: 0 30px;
-
+  width: 375px;
 }
 
 .section-title {
@@ -128,3 +121,54 @@
   background-color: #333;
   color: #fff;
 }
+
+/* Macro Chart Styles */
+.macro-chart-container {
+  text-align: center;
+  padding: 10px 5px;
+}
+
+.macro-details {
+  margin: 0 auto;
+  width: fit-content;
+  font-size: 14px;
+  margin: 10px auto;
+}
+
+.macro-item {
+  text-align: left;
+  margin: 4px 0;
+}
+
+.macro-calories {
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+/* Chart Styles */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.chart-title {
+  text-align: center;
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.chart-grid {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.chart-wrapper {
+  flex: 1;
+  border-radius: 8px;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
