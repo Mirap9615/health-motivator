@@ -145,7 +145,7 @@
   margin-top: 8px;
 }
 
-/* Chart Styles */
+/* DashboardBar */
 .chart-container {
   display: flex;
   flex-direction: column;
@@ -157,18 +157,5 @@
   margin: 0 0 10px 0;
   font-size: 1.1rem;
   font-weight: 600;
-}
-
-.chart-grid {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.chart-wrapper {
-  flex: 1;
-  border-radius: 8px;
-  background-color: white;
-  transition: all 0.2s ease;
 }
 

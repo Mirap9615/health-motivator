@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import './Diet.css';
 
 function Diet() {
+    const navigate = useNavigate();
     const [activeMainTab, setActiveMainTab] = useState('overview');
     const [activeTimeTab, setActiveTimeTab] = useState('daily');
     const [dietData, setDietData] = useState([]);
@@ -251,11 +253,20 @@ function Diet() {
         }
     };
 
+    const handleNavigateToImport = () => {
+        navigate('/import', { state: { formType: 'diet' } });
+    };
+
     return (
         <>
             <SideBar />
             <div className="diet-container">
-                <h1 className="diet-title">Diet Overview</h1>
+                <div className="diet-header">
+                    <h1 className="diet-title">Diet Overview</h1>
+                    <button className="add-diet-button" onClick={handleNavigateToImport}>
+                        + Add Diet Entry
+                    </button>
+                </div>
 
                 <div className="diet-main-tabs">
                     <div 
@@ -278,27 +289,27 @@ function Diet() {
                 {activeMainTab === 'overview' && (
                     <div className="diet-overview-content">
                         <div className="diet-chart-container">
-                            <div className="diet-chart">
-                                <ResponsiveContainer width="100%" height={300}>
+                <div className="diet-chart">
+                    <ResponsiveContainer width="100%" height={300}>
                                     <LineChart data={processedData[activeTimeTab]}>
-                                        <CartesianGrid strokeDasharray="3 3" />
+                            <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey={activeTimeTab === 'daily' ? 'time' : activeTimeTab === 'weekly' ? 'date' : activeTimeTab === 'monthly' ? 'month' : 'year'} />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                            
+                            <YAxis />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="calories" stroke="#007bff" strokeWidth={2} dot={{ r: 4 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
                             <div className="diet-time-tabs">
                                 <button onClick={() => setActiveTimeTab('daily')} className={activeTimeTab === 'daily' ? 'active' : ''}>Daily</button>
                                 <button onClick={() => setActiveTimeTab('weekly')} className={activeTimeTab === 'weekly' ? 'active' : ''}>Weekly</button>
                                 <button onClick={() => setActiveTimeTab('monthly')} className={activeTimeTab === 'monthly' ? 'active' : ''}>Monthly</button>
                                 <button onClick={() => setActiveTimeTab('annual')} className={activeTimeTab === 'annual' ? 'active' : ''}>Annual</button>
                             </div>
-                        </div>
+                </div>
 
-                        <div className="diet-summary">
+                <div className="diet-summary">
                             <h2>Summary ({activeTimeTab.charAt(0).toUpperCase() + activeTimeTab.slice(1)})</h2>
                             
                             {activeTimeTab === 'daily' ? (
@@ -352,7 +363,7 @@ function Diet() {
                                 </table>
                             )}
                         </div>
-                    </div>
+            </div>            
                 )}
 
                 {activeMainTab === 'pastLog' && (

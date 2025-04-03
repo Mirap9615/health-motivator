@@ -5,7 +5,7 @@ const cors = require("cors");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const pool = require("./db.cjs");
-
+const aiRoutes = require('./ai.cjs');
 dotenv.config();
 
 const app = express();
@@ -17,8 +17,8 @@ app.use(express.json());
 app.use(
     session({
         store: new pgSession({
-        pool: pool, 
-        tableName: "session", 
+            pool: pool, 
+            tableName: "session", 
         }),
         secret: process.env.SESSION_SECRET, 
         resave: false,
@@ -28,9 +28,9 @@ app.use(
 );
 
 const isAuthenticated = (req, res, next) => {
-if (req.session.user) {
-    next();
-} else {
+    if (req.session.user) {
+        next();
+    } else {
     res.status(401).json({ message: "Unauthorized" });
 }
 };
@@ -41,11 +41,10 @@ const entryRoutes = require("./entries.cjs");
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/entries", entryRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.listen(port, () => {
 console.log(`Server listening on ${port}`);
-console.log(process.env.SESSION_SECRET);
-
 });
 
 app.use(express.static(path.join(__dirname, '../dist')));

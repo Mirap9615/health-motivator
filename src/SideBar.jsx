@@ -54,6 +54,7 @@ const SideBar = () => {
           {isLoggedIn ? (
             <div className="nav-item-list">
               <a href="/dashboard">Dashboard</a>
+              <a href="/ai-chat">AI Coach</a>
               <a href="/diet">Diet</a>
               <a href="/fitness">Fitness</a>
               <div className={`hamburger-menu-container ${isOpen ? "menu-active" : ""}`}>
@@ -74,7 +75,6 @@ const SideBar = () => {
       <div className={`menu ${isOpen ? "menu-active" : ""}`}>
         <div className="logged-in-info">Logged in as {username}</div>
         <a href="/import">Import</a>
-        <a href="/comparison">Comparison</a>
         <a href="/profile">Profile</a>
         <a href="#" onClick={handleLogout}>Logout</a>
       </div>

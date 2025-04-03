@@ -4,12 +4,12 @@ import Dashboard from './Dashboard.jsx';
 import Diet from './Diet.jsx';
 import Fitness from './Fitness.jsx';
 import Import from './Import.jsx';
-import Comparison from './Comparison.jsx';
 import Profile from './Profile.jsx';
 import Login from './Login.jsx';
 import Register from './Register.jsx';
 import Logout from './Logout.jsx';
 import About from './About.jsx';
+import AiChat from './AiChat.jsx';
 
 function AppRouter() {
     return (
@@ -21,12 +21,12 @@ function AppRouter() {
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/diet" element={<Diet />} /> 
             <Route path="/import" element={<Import />} />
-            <Route path="/comparison" element={<Comparison />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/logout" element={<Logout />} />
             <Route path="/about" element={<About />} />
+            <Route path="/ai-chat" element={<AiChat />} />
             <Route path="*" element={<Dashboard />} />
         </Routes>
         </Router>

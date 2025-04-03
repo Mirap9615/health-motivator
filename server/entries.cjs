@@ -9,7 +9,6 @@ router.post("/diet", async (req, res) => {
     
     const user_id = req.session.user.user_id;
     const { meal_type, calories, protein_g, carbs_g, fats_g, entry_time } = req.body;
-    console.log(req.body)
     try {
         await pool.query(
             "INSERT INTO diet_entries (user_id, meal_type, calories, protein_g, carbs_g, fats_g, entry_time) VALUES ($1, $2, $3, $4, $5, $6, $7)",
@@ -56,7 +55,6 @@ router.get("/diet/past", async (req, res) => {
             "SELECT meal_type, calories, protein_g, carbs_g, fats_g, entry_time FROM diet_entries WHERE user_id = $1 ORDER BY entry_time DESC",
             [user_id]
         );
-        console.log(result.rows);
 
         res.json(result.rows);
     } catch (error) {

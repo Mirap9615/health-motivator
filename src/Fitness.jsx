@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import './Fitness.css';
 
 function Fitness() {
+    const navigate = useNavigate();
     const [activeMainTab, setActiveMainTab] = useState('overview');
     const [activeTimeTab, setActiveTimeTab] = useState('daily');
     const [fitnessData, setFitnessData] = useState([]);
@@ -25,6 +27,10 @@ function Fitness() {
         totalCalories: 0,
         avgCalories: 0,
     });    
+
+    const handleNavigateToImport = () => {
+        navigate('/import', { state: { formType: 'fitness' } });
+    };
 
     useEffect(() => {
         fetch("/api/entries/fitness/past", { method: "GET", credentials: "include" })
@@ -215,7 +221,12 @@ function Fitness() {
         <>
             <SideBar />
             <div className="fitness-container">
-                <h1 className="fitness-title">Fitness Overview</h1>
+                <div className="fitness-header">
+                    <h1 className="fitness-title">Fitness Overview</h1>
+                    <button className="add-fitness-button" onClick={handleNavigateToImport}>
+                        + Add Fitness Entry
+                    </button>
+                </div>
 
                 <div className="fitness-main-tabs">
                     <div 
@@ -238,27 +249,27 @@ function Fitness() {
                 {activeMainTab === 'overview' && (
                     <div className="fitness-overview-content">
                         <div className="fitness-chart-container">
-                            <div className="fitness-chart">
-                                <ResponsiveContainer width="100%" height={300}>
+                <div className="fitness-chart">
+                    <ResponsiveContainer width="100%" height={300}>
                                     <LineChart data={processedData[activeTimeTab]}>
-                                        <CartesianGrid strokeDasharray="3 3" />
+                            <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey={activeTimeTab === 'daily' ? 'date' : activeTimeTab === 'weekly' ? 'week' : activeTimeTab === 'monthly' ? 'month' : 'year'} />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Line type="monotone" dataKey="minutes" stroke="#ff5733" strokeWidth={2} dot={{ r: 4 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                            
+                            <YAxis />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="minutes" stroke="#ff5733" strokeWidth={2} dot={{ r: 4 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
                             <div className="fitness-time-tabs">
                                 <button onClick={() => setActiveTimeTab('daily')} className={activeTimeTab === 'daily' ? 'active' : ''}>Daily</button>
                                 <button onClick={() => setActiveTimeTab('weekly')} className={activeTimeTab === 'weekly' ? 'active' : ''}>Weekly</button>
                                 <button onClick={() => setActiveTimeTab('monthly')} className={activeTimeTab === 'monthly' ? 'active' : ''}>Monthly</button>
                                 <button onClick={() => setActiveTimeTab('annual')} className={activeTimeTab === 'annual' ? 'active' : ''}>Annual</button>
                             </div>
-                        </div>
+                </div>
 
-                        <div className="fitness-summary">
+                    <div className="fitness-summary">
                             <h2>Summary ({activeTimeTab.charAt(0).toUpperCase() + activeTimeTab.slice(1)})</h2>
                             
                             {activeTimeTab === 'daily' ? (
@@ -308,7 +319,7 @@ function Fitness() {
                             )}
                         </div>
                     </div>
-                )}
+                 )}
 
                 {activeMainTab === 'pastLog' && (
                     <PastFitness pastData={fitnessData} />
