@@ -9,6 +9,7 @@ const Import = () => {
   const [activeForm, setActiveForm] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]); // Default to today
   const [dietData, setDietData] = useState({
+    meal_name: "",
     meal_type: "Breakfast",
     calories: "",
     protein_g: "",
@@ -25,6 +26,8 @@ const Import = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  const [savedMeals, setSavedMeals] = useState([]);
+  const [mealTypeFilter, setMealTypeFilter] = useState("All");
 
   // Check for state passed through navigation and set the active form
   useEffect(() => {
@@ -66,6 +69,7 @@ const Import = () => {
         // Reset form after successful submission
         if (type === "diet") {
           setDietData({
+            meal_name: "",
             meal_type: "Breakfast",
             calories: "",
             protein_g: "",
@@ -123,6 +127,144 @@ const Import = () => {
     }
   };
 
+  // Load saved meals from localStorage when component mounts
+  useEffect(() => {
+    const loadSavedMeals = () => {
+      try {
+        const savedMealsString = localStorage.getItem('savedMeals');
+        if (savedMealsString) {
+          const meals = JSON.parse(savedMealsString);
+          setSavedMeals(meals);
+          console.log("Loaded saved meals from localStorage:", meals);
+        }
+      } catch (error) {
+        console.error("Error loading saved meals from localStorage:", error);
+      }
+    };
+    
+    loadSavedMeals();
+  }, []);
+
+  // Fetch saved meals when component mounts
+  useEffect(() => {
+    fetchSavedMeals();
+  }, []);
+
+  // Function to fetch saved meals
+  const fetchSavedMeals = async () => {
+    try {
+      const response = await fetch("/api/entries/savedmeals", {
+        credentials: "include"
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched saved meals:", data);
+        setSavedMeals(data);
+      } else {
+        console.error("Failed to fetch saved meals");
+      }
+    } catch (error) {
+      console.error("Error fetching saved meals:", error);
+    }
+  };
+
+  // Function to save a meal
+  const handleSaveMeal = async () => {
+    if (!dietData.meal_name) {
+      setNotification({
+        show: true,
+        message: "Please enter a name for this meal",
+        type: "error"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/entries/savemeal", {
+        method: "POST",
+        credentials: "include",
+        headers: { 
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          meal_name: dietData.meal_name,
+          meal_type: dietData.meal_type,
+          calories: Number(dietData.calories) || 0,
+          protein_g: Number(dietData.protein_g) || 0,
+          carbs_g: Number(dietData.carbs_g) || 0,
+          fats_g: Number(dietData.fats_g) || 0,
+        }),
+      });
+
+      if (response.ok) {
+        setNotification({
+          show: true,
+          message: "Meal saved successfully!",
+          type: "success"
+        });
+        fetchSavedMeals();
+      } else {
+        const errorData = await response.json();
+        setNotification({
+          show: true,
+          message: errorData.error || "Error saving meal. Please try again.",
+          type: "error"
+        });
+      }
+    } catch (error) {
+      console.error("Error saving meal:", error);
+      setNotification({
+        show: true,
+        message: `Network error: ${error.message}`,
+        type: "error"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Function to delete a saved meal
+  const deleteSavedMeal = async (id) => {
+    try {
+      const response = await fetch(`/api/entries/savedmeals/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      
+      if (response.ok) {
+        fetchSavedMeals();
+        setNotification({
+          show: true,
+          message: "Meal deleted successfully",
+          type: "success"
+        });
+      } else {
+        setNotification({
+          show: true,
+          message: "Error deleting meal",
+          type: "error"
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting meal:", error);
+      setNotification({
+        show: true,
+        message: `Network error: ${error.message}`,
+        type: "error"
+      });
+    }
+  };
+
+  // Function to filter meals by type
+  const getFilteredMeals = () => {
+    if (mealTypeFilter === "All") {
+      return savedMeals;
+    }
+    return savedMeals.filter(meal => meal.meal_type === mealTypeFilter);
+  };
+
   return (
     <>
       <SideBar />
@@ -174,6 +316,19 @@ const Import = () => {
 
               {activeForm === "diet" ? (
                 <>
+                  <div className="form-group">
+                    <label htmlFor="meal_name">Meal Name:</label>
+                    <input 
+                      id="meal_name" 
+                      type="text" 
+                      name="meal_name" 
+                      value={dietData.meal_name} 
+                      onChange={handleDietChange} 
+                      className="form-control"
+                      placeholder="e.g. Chicken Salad"
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label htmlFor="meal_type">Meal Type:</label>
                     <select 
@@ -245,6 +400,29 @@ const Import = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="form-actions">
+                    <button 
+                      className="cancel-button" 
+                      onClick={() => setActiveForm(null)}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      className={`submit-button ${!isFormValid(activeForm) ? 'disabled' : ''}`} 
+                      onClick={() => handleSubmit(activeForm)}
+                      disabled={!isFormValid(activeForm) || isSubmitting}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save Entry'}
+                    </button>
+                    <button 
+                      className="save-meal-button" 
+                      onClick={handleSaveMeal}
+                      disabled={!dietData.meal_name || !dietData.calories || isSubmitting}
+                    >
+                      Save as Meal Template
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -304,21 +482,97 @@ const Import = () => {
                 </>
               )}
 
-              <div className="form-actions">
-                <button 
-                  className="cancel-button" 
-                  onClick={() => setActiveForm(null)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  className={`submit-button ${!isFormValid(activeForm) ? 'disabled' : ''}`} 
-                  onClick={() => handleSubmit(activeForm)}
-                  disabled={!isFormValid(activeForm) || isSubmitting}
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Entry'}
-                </button>
-              </div>
+              {activeForm === "diet" && savedMeals.length > 0 && (
+                <div className="saved-meals-section">
+                  <div className="saved-meals-header">
+                    <h4>Saved Meal Templates</h4>
+                    <div className="meal-type-filters">
+                      <button 
+                        className={`filter-button ${mealTypeFilter === "All" ? "active" : ""}`}
+                        onClick={() => setMealTypeFilter("All")}
+                      >
+                        All
+                      </button>
+                      <button 
+                        className={`filter-button ${mealTypeFilter === "Breakfast" ? "active" : ""}`}
+                        onClick={() => setMealTypeFilter("Breakfast")}
+                      >
+                        Breakfast
+                      </button>
+                      <button 
+                        className={`filter-button ${mealTypeFilter === "Lunch" ? "active" : ""}`}
+                        onClick={() => setMealTypeFilter("Lunch")}
+                      >
+                        Lunch
+                      </button>
+                      <button 
+                        className={`filter-button ${mealTypeFilter === "Dinner" ? "active" : ""}`}
+                        onClick={() => setMealTypeFilter("Dinner")}
+                      >
+                        Dinner
+                      </button>
+                      <button 
+                        className={`filter-button ${mealTypeFilter === "Snack" ? "active" : ""}`}
+                        onClick={() => setMealTypeFilter("Snack")}
+                      >
+                        Snack
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="saved-meals-scroll-container">
+                    <div className="saved-meals-list">
+                      {getFilteredMeals().length > 0 ? (
+                        getFilteredMeals().map((meal) => (
+                          <div 
+                            key={meal.id} 
+                            className="saved-meal-item"
+                          >
+                            <div className="saved-meal-header">
+                              <div className="saved-meal-name">{meal.meal_name}</div>
+                              <div className={`meal-type-badge ${meal.meal_type.toLowerCase()}`}>{meal.meal_type}</div>
+                              <button 
+                                className="delete-meal-button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteSavedMeal(meal.id);
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                            <div className="saved-meal-details">
+                              <span className="calorie-badge">{meal.calories} cal</span>
+                              <span className="protein-badge">{meal.protein_g}g protein</span>
+                              <span className="carbs-badge">{meal.carbs_g}g carbs</span>
+                              <span className="fats-badge">{meal.fats_g}g fat</span>
+                            </div>
+                            <button 
+                              className="use-meal-button"
+                              onClick={() => {
+                                setDietData({
+                                  meal_name: meal.meal_name,
+                                  meal_type: meal.meal_type,
+                                  calories: meal.calories.toString(),
+                                  protein_g: meal.protein_g.toString(),
+                                  carbs_g: meal.carbs_g.toString(),
+                                  fats_g: meal.fats_g.toString(),
+                                });
+                              }}
+                            >
+                              Use This Meal
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="no-meals-message">
+                          No {mealTypeFilter !== "All" ? mealTypeFilter.toLowerCase() : ""} meals saved yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

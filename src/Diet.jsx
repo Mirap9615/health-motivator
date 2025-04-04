@@ -257,6 +257,24 @@ function Diet() {
         navigate('/import', { state: { formType: 'diet' } });
     };
 
+    const handleDeleteEntry = (entryId) => {
+        console.log(`Attempting to delete entry with ID: ${entryId}`);
+        fetch(`/api/entries/diet/${entryId}`, { method: 'DELETE', credentials: 'include' })
+            .then((response) => {
+                if (response.ok) {
+                    setDietData((prevData) => prevData.filter(entry => entry.id !== entryId));
+                    console.log(`Entry with ID: ${entryId} deleted successfully.`);
+                } else {
+                    console.error("Error deleting entry:", response.statusText);
+                    alert("Failed to delete entry. Please try again.");
+                }
+            })
+            .catch((error) => {
+                console.error("Error deleting entry:", error);
+                alert("An error occurred while trying to delete the entry.");
+            });
+    };
+
     return (
         <>
             <SideBar />
@@ -541,17 +559,26 @@ function PastDiet({ pastData }) {
                             <th>Carbs (g)</th>
                             <th>Fats (g)</th>
                             <th>Date</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredData.map((entry, index) => (
-                            <tr key={index}>
+                        {filteredData.map((entry) => (
+                            <tr key={entry.id}>
                                 <td>{entry.meal_type}</td>
                                 <td>{entry.calories}</td>
                                 <td>{entry.protein_g}</td>
                                 <td>{entry.carbs_g}</td>
                                 <td>{entry.fats_g}</td>
                                 <td>{new Date(entry.entry_time).toLocaleDateString()}</td>
+                                <td>
+                                    <button 
+                                        onClick={() => handleDeleteEntry(entry.id)}
+                                        className="delete-button"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
