@@ -1,64 +1,204 @@
-.centerer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* Register page container */
+.register-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  background-color: rgb(240, 240, 240);
+  padding: 20px;
+}
+
+/* Register form container */
+.register-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.register-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Header styles */
+.register-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.register-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+.register-subtitle {
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+/* Form styles */
+.register-form {
+  margin-bottom: 25px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.95rem;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 1px solid #dce1e6;
+  border-radius: 8px;
+  background-color: #f9fafc;
+  transition: all 0.2s ease;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #333333;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.input-wrapper input::placeholder {
+  color: #adb5bd;
+}
+
+/* Button styles */
+.register-button, .login-button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.register-button {
+  background-color: #333333;
+  color: white;
+  margin-top: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.register-button:hover {
+  background-color: #444444;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.login-button {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.login-button:hover {
+  background-color: #dee2e6;
+  color: #212529;
+}
+
+/* Divider */
+.auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 25px 0;
+}
+
+.auth-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e9ecef;
+  z-index: 1;
+}
+
+.auth-divider span {
+  position: relative;
+  z-index: 2;
+  background-color: #ffffff;
+  padding: 0 15px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Error message */
+.error-message {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background-color: #fff0f0;
+  border-left: 4px solid #dc3545;
+  border-radius: 4px;
+  color: #dc3545;
+  font-size: 0.9rem;
+}
+
+.error-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 22px;
+  height: 22px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  margin-right: 10px;
+  font-style: normal;
+  font-weight: bold;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 24px;
+  }
+  
+  .register-header h2 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-page {
+    padding: 10px;
   }
   
   .register-container {
-    width: 350px;
     padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
-    text-align: center;
   }
   
-  h2 {
-    margin-bottom: 15px;
+  .register-header h2 {
+    font-size: 1.6rem;
   }
   
-  .input-group {
-    margin-bottom: 10px;
-    text-align: left;
+  .input-wrapper input {
+    padding: 12px 14px;
   }
-  
-  .input-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .input-group input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-  }
-  
-  .register-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-  }
-  
-  .register-button:hover {
-    background-color: #45a049;
-  }
-  
-  .error-message {
-    color: red;
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-  
-  .login-redirect {
-    margin-top: 10px;
-    font-size: 14px;
-  }
+}
   

@@ -67,6 +67,7 @@ const SideBar = () => {
             <div className="nav-item-list user-inactive">
               <a href="/about">About</a>
               <a href="/login">Login</a>
+              <a href="/register">Register</a>
             </div>
           )}
         </div>

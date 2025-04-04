@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
+import SideBar from './SideBar.jsx';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -37,45 +38,82 @@ const Register = () => {
   };
 
   return (
-    <div className="centerer">
-      <div className="register-container">
-        <h2>Register</h2>
-        {errorMessage && <div className="error-message">{errorMessage}</div>}
-        <form onSubmit={handleRegister}>
-          <div className="input-group">
-            <label>Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+    <>
+      <SideBar />
+      <div className="register-page">
+        <div className="register-container">
+          <div className="register-header">
+            <h2>Create Account</h2>
+            <p className="register-subtitle">Join Health Motivator to start your wellness journey</p>
           </div>
-          <div className="input-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          
+          {errorMessage && (
+            <div className="error-message">
+              <i className="error-icon">!</i>
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          
+          <form onSubmit={handleRegister} className="register-form">
+            <div className="input-group">
+              <label htmlFor="name">Full Name</label>
+              <div className="input-wrapper">
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <div className="input-wrapper">
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+              <div className="input-wrapper">
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  required
+                />
+              </div>
+            </div>
+            
+            <button type="submit" className="register-button">
+              Create Account
+            </button>
+          </form>
+          
+          <div className="auth-divider">
+            <span>Already have an account?</span>
           </div>
-          <div className="input-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          
+          <div className="login-redirect">
+            <button className="login-button" onClick={() => navigate('/login')}>
+              Sign In
+            </button>
           </div>
-          <button type="submit" className="register-button">Register</button>
-        </form>
-        <div className="login-redirect">
-          Already have an account? <a href="/login">Log in</a>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

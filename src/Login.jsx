@@ -39,37 +39,66 @@ const Login = () => {
   return (
     <>
       <SideBar />
-      <div className="centerer">
+      <div className="login-page">
         <div className="login-container">
-          <h2>Login</h2>
-          {errorMessage && <div className="error-message">{errorMessage}</div>}
-          <form onSubmit={handleLogin}>
-            <div className="input-group">
-              <label>Email</label>
-              <input
-                type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="input-group">
-              <label>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className="login-button">Login</button>
-          </form>
-          <div className="forgot-password">
-            <Link to="/forgot-password">Forgot Password?</Link>
+          <div className="login-header">
+            <h2>Welcome Back</h2>
+            <p className="login-subtitle">Sign in to continue your health journey</p>
           </div>
+          
+          {errorMessage && (
+            <div className="error-message">
+              <i className="error-icon">!</i>
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          
+          <form onSubmit={handleLogin} className="login-form">
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <div className="input-wrapper">
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="input-group">
+              <div className="password-label-row">
+                <label htmlFor="password">Password</label>
+                <Link to="/forgot-password" className="forgot-password">
+                  Forgot Password?
+                </Link>
+              </div>
+              <div className="input-wrapper">
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            </div>
+            
+            <button type="submit" className="login-button">
+              Sign In
+            </button>
+          </form>
+          
+          <div className="auth-divider">
+            <span>New to Health Motivator?</span>
+          </div>
+          
           <div className="register-redirect">
-            <button className="register-button-in-login" onClick={() => navigate('/register')}>
-                Register
+            <button className="register-button" onClick={() => navigate('/register')}>
+              Create an Account
             </button>
           </div>
         </div>
