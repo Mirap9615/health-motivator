@@ -29,10 +29,29 @@ const Import = () => {
   const [savedMeals, setSavedMeals] = useState([]);
   const [mealTypeFilter, setMealTypeFilter] = useState("All");
 
-  // Check for state passed through navigation and set the active form
+  // Check for state passed through navigation
   useEffect(() => {
+    // Handle formType from older navigation
     if (location.state && location.state.formType) {
       setActiveForm(location.state.formType);
+    }
+    
+    // Handle macroInfo from AI Chat
+    if (location.state && location.state.macroInfo) {
+      const { meal_name, calories, protein_g, carbs_g, fats_g } = location.state.macroInfo;
+      
+      // Set the active form to diet if it's not already set
+      setActiveForm('diet');
+      
+      // Update the diet data with the AI-extracted values
+      setDietData(prev => ({
+        ...prev,
+        meal_name: meal_name || "",
+        calories: calories ? calories.toString() : "",
+        protein_g: protein_g ? protein_g.toString() : "",
+        carbs_g: carbs_g ? carbs_g.toString() : "",
+        fats_g: fats_g ? fats_g.toString() : ""
+      }));
     }
   }, [location]);
 
@@ -88,7 +107,7 @@ const Import = () => {
         // Hide notification after 3 seconds
         setTimeout(() => {
           setNotification({ show: false, message: "", type: "" });
-          setActiveForm(null);
+        setActiveForm(null);
         }, 3000);
       } else {
         setNotification({
@@ -302,7 +321,7 @@ const Import = () => {
               <button className="close-button" onClick={() => setActiveForm(null)}>×</button>
             </div>
             
-            <div className="import-form">
+          <div className="import-form">
               <div className="form-group">
                 <label htmlFor="date">Date:</label>
                 <input 
@@ -314,8 +333,8 @@ const Import = () => {
                 />
               </div>
 
-              {activeForm === "diet" ? (
-                <>
+            {activeForm === "diet" ? (
+              <>
                   <div className="form-group">
                     <label htmlFor="meal_name">Meal Name:</label>
                     <input 
@@ -338,11 +357,11 @@ const Import = () => {
                       onChange={handleDietChange}
                       className="form-control"
                     >
-                      <option>Breakfast</option>
-                      <option>Lunch</option>
-                      <option>Dinner</option>
-                      <option>Snack</option>
-                    </select>
+                  <option>Breakfast</option>
+                  <option>Lunch</option>
+                  <option>Dinner</option>
+                  <option>Snack</option>
+                </select>
                   </div>
 
                   <div className="form-row">
@@ -421,11 +440,11 @@ const Import = () => {
                       disabled={!dietData.meal_name || !dietData.calories || isSubmitting}
                     >
                       Save as Meal Template
-                    </button>
+                </button>
                   </div>
-                </>
-              ) : (
-                <>
+              </>
+            ) : (
+              <>
                   <div className="form-group">
                     <label htmlFor="exercise_type">Exercise Type:</label>
                     <input 
@@ -479,8 +498,8 @@ const Import = () => {
                       placeholder="e.g. 5000"
                     />
                   </div>
-                </>
-              )}
+              </>
+            )}
 
               {activeForm === "diet" && savedMeals.length > 0 && (
                 <div className="saved-meals-section">
@@ -582,3 +601,5 @@ const Import = () => {
 };
 
 export default Import;
+
+

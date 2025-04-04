@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DashboardChecklist.css';
-import { generateHealthTips, generateMealSuggestion, generateWorkoutSuggestion } from './services/aiServices';
+import { generateAIResponse } from './services/aiServices';
+import { generateHealthTipsPrompt, generateMealPrompt, generateWorkoutPrompt } from './services/promptServiceAI';
 
 const DashboardChecklist = () => {
   const dailyTasks = [
@@ -69,15 +70,27 @@ const DashboardChecklist = () => {
       const newDailyRecommendations = [...initialDailyRecommendations];
       
       // Meal suggestion (first item)
-      const mealResult = await generateMealSuggestion(['balanced', 'quick'], []);
+      const mealPrompt = generateMealPrompt(['balanced', 'quick'], []);
+      const mealResult = await generateAIResponse(mealPrompt, {
+        temperature: 0.8,
+        maxTokens: 250
+      });
       newDailyRecommendations[0] = mealResult.response;
       
       // Workout suggestion (second item)
-      const workoutResult = await generateWorkoutSuggestion(30, 'moderate');
+      const workoutPrompt = generateWorkoutPrompt(30, 'moderate');
+      const workoutResult = await generateAIResponse(workoutPrompt, {
+        temperature: 0.7,
+        maxTokens: 350
+      });
       newDailyRecommendations[1] = workoutResult.response;
       
       // Health tip (third item)
-      const healthResult = await generateHealthTips(userStats);
+      const healthPrompt = generateHealthTipsPrompt(userStats);
+      const healthResult = await generateAIResponse(healthPrompt, {
+        temperature: 0.7,
+        maxTokens: 300
+      });
       newDailyRecommendations[2] = healthResult.response;
       
       setDailyRecommendations(newDailyRecommendations);
@@ -87,15 +100,27 @@ const DashboardChecklist = () => {
       const newWeeklyRecommendations = [...initialWeeklyRecommendations];
       
       // Weekly meal plan (first item)
-      const weeklyMealResult = await generateMealSuggestion(['meal prep', 'nutritious'], []);
+      const weeklyMealPrompt = generateMealPrompt(['meal prep', 'nutritious'], []);
+      const weeklyMealResult = await generateAIResponse(weeklyMealPrompt, {
+        temperature: 0.8,
+        maxTokens: 250
+      });
       newWeeklyRecommendations[0] = weeklyMealResult.response;
       
       // Weekly workout plan (second item)
-      const weeklyWorkoutResult = await generateWorkoutSuggestion(45, 'challenging');
+      const weeklyWorkoutPrompt = generateWorkoutPrompt(45, 'challenging');
+      const weeklyWorkoutResult = await generateAIResponse(weeklyWorkoutPrompt, {
+        temperature: 0.7,
+        maxTokens: 350
+      });
       newWeeklyRecommendations[1] = weeklyWorkoutResult.response;
       
       // Weekly health strategy (third item)
-      const weeklyHealthResult = await generateHealthTips({...userStats, steps: 9000});
+      const weeklyHealthPrompt = generateHealthTipsPrompt({...userStats, steps: 9000});
+      const weeklyHealthResult = await generateAIResponse(weeklyHealthPrompt, {
+        temperature: 0.7,
+        maxTokens: 300
+      });
       newWeeklyRecommendations[2] = weeklyHealthResult.response;
       
       setWeeklyRecommendations(newWeeklyRecommendations);
@@ -188,15 +213,27 @@ const DashboardChecklist = () => {
       // Call the appropriate AI service based on the item index
       switch (highlightedRecommendation) {
         case 0: // Meal suggestion (first item)
-          const mealResult = await generateMealSuggestion(['balanced', 'nutritious'], []);
+          const mealPrompt = generateMealPrompt(['balanced', 'nutritious'], []);
+          const mealResult = await generateAIResponse(mealPrompt, {
+            temperature: 0.8,
+            maxTokens: 250
+          });
           newRecommendation = mealResult.response;
           break;
         case 1: // Workout suggestion (second item)
-          const workoutResult = await generateWorkoutSuggestion(30, 'moderate');
+          const workoutPrompt = generateWorkoutPrompt(30, 'moderate');
+          const workoutResult = await generateAIResponse(workoutPrompt, {
+            temperature: 0.7,
+            maxTokens: 350
+          });
           newRecommendation = workoutResult.response;
           break;
         case 2: // Health tip (third item)
-          const healthResult = await generateHealthTips(userStats);
+          const healthPrompt = generateHealthTipsPrompt(userStats);
+          const healthResult = await generateAIResponse(healthPrompt, {
+            temperature: 0.7,
+            maxTokens: 300
+          });
           newRecommendation = healthResult.response;
           break;
         default:

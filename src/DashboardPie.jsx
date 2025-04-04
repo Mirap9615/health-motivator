@@ -104,11 +104,11 @@ function DashboardPie({ timeView = 'daily' }) {
         });
         
         // Update chart data
-        setChartData([
+      setChartData([
             { name: 'Carbs', value: Math.round(totalCarbs) },
             { name: 'Proteins', value: Math.round(totalProtein) },
             { name: 'Fats', value: Math.round(totalFats) },
-        ]);
+      ]);
     };
     
     const totalNutrients = chartData.reduce((sum, item) => sum + item.value, 0);
@@ -126,21 +126,21 @@ function DashboardPie({ timeView = 'daily' }) {
         <div className="macro-chart-container">
             <ResponsiveContainer width={320} height={250}>
                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                    <Pie
-                        data={chartData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
+            <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
                         outerRadius={90}
                         innerRadius={0}
                         labelLine={false}
                         label={renderCustomizedLabel}
-                    >
-                        {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                    </Pie>
+            >
+                {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+            </Pie>
                     <Tooltip formatter={(value) => `${value}g`} />
                     <Legend 
                         layout="horizontal" 
@@ -151,19 +151,19 @@ function DashboardPie({ timeView = 'daily' }) {
                             paddingTop: '10px'
                         }}
                     />
-                </PieChart>
+            </PieChart>
             </ResponsiveContainer>
             <div className="macro-details">
-                {chartData.map((data, index) => {
+              {chartData.map((data, index) => {
                     const percent = totalNutrients
                         ? ((data.value / totalNutrients) * 100).toFixed(1)
-                        : 0;
-                    return (
+                  : 0;
+                return (
                         <p key={index} className="macro-item" style={{ color: `${COLORS[index]}` }}>
-                            {data.name}: {data.value} g ({percent}%)
-                        </p>
-                    );
-                })}
+                    {data.name}: {data.value} g ({percent}%)
+                  </p>
+                );
+              })}
                 <p className="macro-calories">Est. Calories: {Math.round(totalCalories)} kcal</p>
             </div>
         </div>

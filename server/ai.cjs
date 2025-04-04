@@ -33,38 +33,57 @@ router.post('/generate', async (req, res) => {
       conversationHistories[conversationId] = [];
     }
     
+    // Handle freshConversation option - start a new conversation for this prompt only
+    let messages;
+    if (options.freshConversation) {
+      // Use only this message without history
+      messages = [{ role: "user", content: prompt }];
+      console.log(`Using fresh conversation for prompt: "${prompt.substring(0, 50)}..."`);
+    } else {
+      // Add user message to history
+      conversationHistories[conversationId].push({ role: "user", content: prompt });
+      // Use full conversation history
+      messages = [...conversationHistories[conversationId]];
+    }
+    
     // Set default parameters
     const model = options.model || 'deepseek-chat'; // Use the appropriate DeepSeek model name
     const maxTokens = options.maxTokens || 10000;
     const temperature = options.temperature || 0.7;
     
-    // Add user message to history
-    conversationHistories[conversationId].push({ role: "user", content: prompt });
-    
     console.log(`AI Request - Prompt: "${prompt.substring(0, 50)}..." with model: ${model}`);
-    console.log(`AI Request options:`, { maxTokens, temperature, conversationLength: conversationHistories[conversationId].length });
+    console.log(`AI Request options:`, { 
+      maxTokens, 
+      temperature, 
+      freshConversation: options.freshConversation,
+      conversationLength: messages.length 
+    });
     
-    // Call the DeepSeek API using OpenAI client with the full conversation history
+    // Call the DeepSeek API using OpenAI client with the conversation history
     const completion = await deepseekAI.chat.completions.create({
       model: model,
-      messages: conversationHistories[conversationId],
+      messages: messages,
       max_tokens: maxTokens,
       temperature: temperature,
     });
     
-    // Add AI response to conversation history
+    // Add AI response to conversation history (only if not using freshConversation)
     const aiResponse = completion.choices[0].message.content;
-    conversationHistories[conversationId].push({ role: "assistant", content: aiResponse });
     
-    // Truncate history if it gets too long (keep last 10 messages)
-    if (conversationHistories[conversationId].length > 10) {
-      conversationHistories[conversationId] = conversationHistories[conversationId].slice(-10);
+    if (!options.freshConversation) {
+      conversationHistories[conversationId].push({ role: "assistant", content: aiResponse });
+      
+      // Truncate history if it gets too long (keep last 10 messages)
+      if (conversationHistories[conversationId].length > 10) {
+        conversationHistories[conversationId] = conversationHistories[conversationId].slice(-10);
+      }
     }
     
     console.log('AI Response received:', {
       usage: completion.usage,
       model: completion.model,
-      responseLength: aiResponse.length
+      responseLength: aiResponse.length,
+      responseSample: aiResponse.substring(0, 30) + "..."
     });
     
     // Return the response

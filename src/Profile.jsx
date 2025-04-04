@@ -123,38 +123,38 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="profile-card">
-        {!isEditing ? (
-          <div className="profile-info">
-            <p><strong>Name:</strong> {user.name}</p>
-            <p><strong>Age:</strong> {user.age}</p>
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Activity Level:</strong> {user.activity_level}</p>
+        <div className="profile-card">
+          {!isEditing ? (
+            <div className="profile-info">
+              <p><strong>Name:</strong> {user.name}</p>
+              <p><strong>Age:</strong> {user.age}</p>
+              <p><strong>Email:</strong> {user.email}</p>
+              <p><strong>Activity Level:</strong> {user.activity_level}</p>
             <button className="edit-button" onClick={handleEditToggle}>
               <FiEdit size={16} /> Edit Profile
             </button>
-          </div>
-        ) : (
-          <div className="profile-edit">
-            <label>Name:</label>
-            <input type="text" name="name" value={formData.name} onChange={handleChange} />
+            </div>
+          ) : (
+            <div className="profile-edit">
+              <label>Name:</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} />
 
-            <label>Age:</label>
-            <input type="number" name="age" value={formData.age} onChange={handleChange} />
+              <label>Age:</label>
+              <input type="number" name="age" value={formData.age} onChange={handleChange} />
 
-            <label>Email:</label>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} disabled />
+              <label>Email:</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} disabled />
 
-            <label>Activity Level:</label>
-            <select name="activity_level" value={formData.activity_level} onChange={handleChange}>
-              <option>Sedentary</option>
-              <option>Moderate</option>
-              <option>Intermediate</option>
-              <option>Challenging</option>
-              <option>Advanced</option>
-            </select>
+              <label>Activity Level:</label>
+              <select name="activity_level" value={formData.activity_level} onChange={handleChange}>
+                <option>Sedentary</option>
+                <option>Moderate</option>
+                <option>Intermediate</option>
+                <option>Challenging</option>
+                <option>Advanced</option>
+              </select>
 
-            <div className="profile-buttons">
+              <div className="profile-buttons">
               <button className="save-button" onClick={handleSave}>
                 <FiSave size={16} /> Save
               </button>
@@ -286,9 +286,9 @@ const Profile = () => {
             <button className="cancel-button" onClick={() => setIsEditingGoals(false)}>
               <FiX size={16} /> Cancel
             </button>
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
     </div>
   );
 
@@ -362,9 +362,9 @@ const Profile = () => {
             {activeTab === "profile" && renderProfileTab()}
             {activeTab === "goals" && renderGoalsTab()}
             {activeTab === "settings" && renderSettingsTab()}
-          </div>
         </div>
       </div>
+    </div>
     </>
   );
 };
