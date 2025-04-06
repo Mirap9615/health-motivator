@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import './Diet.css';
+import Calendar from 'react-calendar';
 
 function Diet() {
     const navigate = useNavigate();
@@ -393,9 +394,57 @@ function Diet() {
 }
 
 function PastDiet({ pastData }) {
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showSummary, setShowSummary] = useState(false);
     const [periodFilter, setPeriodFilter] = useState('all');
     const [filteredData, setFilteredData] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+    const [calendarDate, setCalendarDate] = useState(new Date());
+    
+    // Calculate macros for the filtered data
+    const calculateMacros = () => {
+        let calories = 0;
+        let protein = 0;
+        let carbs = 0;
+        let fats = 0;
+        
+        filteredData.forEach(entry => {
+            calories += parseFloat(entry.calories) || 0;
+            protein += parseFloat(entry.protein_g) || 0;
+            carbs += parseFloat(entry.carbs_g) || 0;
+            fats += parseFloat(entry.fats_g) || 0;
+        });
+        
+        return { calories, protein, carbs, fats };
+    };
+    
+    // Get appropriate date input type and value based on period filter
+    const getDatePickerProps = () => {
+        const dateValue = selectedDate.toISOString().split('T')[0];
+        
+        switch (periodFilter) {
+            case 'daily':
+                return { type: 'date', value: dateValue };
+            case 'weekly':
+                return { type: 'week', value: `${selectedDate.getFullYear()}-W${getWeekNumber(selectedDate)}` };
+            case 'monthly':
+                return { type: 'month', value: `${dateValue.substring(0, 7)}` };
+            case 'annual':
+                return { type: 'number', value: selectedDate.getFullYear(), min: 2000, max: 2100 };
+            default:
+                return { type: 'date', value: dateValue };
+        }
+    };
+    
+    // Get week number for a date
+    const getWeekNumber = (date) => {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    };
     
     // Filter data based on selected period and date
     useEffect(() => {
@@ -468,122 +517,173 @@ function PastDiet({ pastData }) {
         setSelectedDate(new Date(e.target.value));
     };
     
-    // Get appropriate date input type and value based on period filter
-    const getDatePickerProps = () => {
-        const dateValue = selectedDate.toISOString().split('T')[0];
-        
-        switch (periodFilter) {
-            case 'daily':
-                return { type: 'date', value: dateValue };
-            case 'weekly':
-                return { type: 'week', value: `${selectedDate.getFullYear()}-W${getWeekNumber(selectedDate)}` };
-            case 'monthly':
-                return { type: 'month', value: `${dateValue.substring(0, 7)}` };
-            case 'annual':
-                return { type: 'number', value: selectedDate.getFullYear(), min: 2000, max: 2100 };
-            default:
-                return { type: 'date', value: dateValue };
-        }
+    // Handle calendar date change
+    const handleCalendarChange = (date) => {
+        setCalendarDate(date);
+        setSelectedDate(date);
+        setPeriodFilter('daily');
     };
     
-    // Get week number for a date
-    const getWeekNumber = (date) => {
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-        const yearStart = new Date(d.getFullYear(), 0, 1);
-        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    // Toggle summary visibility
+    const toggleSummary = () => {
+        setShowSummary(prev => !prev);
     };
-
+    
+    // Get the macros for the current filtered data
+    const macros = calculateMacros();
+    
+    // Tile content for calendar
+    const tileContent = ({ date }) => {
+        const dateStr = date.toISOString().split('T')[0];
+        const hasEntry = pastData.some(entry => {
+            const entryDate = new Date(entry.entry_time).toISOString().split('T')[0];
+            return entryDate === dateStr;
+        });
+        
+        if (!hasEntry) return null;
+        
+        return (
+            <div className="calendar-tile-content">
+                <div className="meal-dot recorded"></div>
+            </div>
+        );
+    };
+    
     return (
-        <div className="diet-card">
-            <h3>Past Diet Entries</h3>
-            
-            <div className="log-filter-container">
-                <div className="period-filter">
-                    <div 
-                        className={`period-option ${periodFilter === 'daily' ? 'active' : ''} diet-period`}
-                        onClick={() => setPeriodFilter('daily')}
-                    >
-                        Daily
-                    </div>
-                    <div 
-                        className={`period-option ${periodFilter === 'weekly' ? 'active' : ''} diet-period`}
-                        onClick={() => setPeriodFilter('weekly')}
-                    >
-                        Weekly
-                    </div>
-                    <div 
-                        className={`period-option ${periodFilter === 'monthly' ? 'active' : ''} diet-period`}
-                        onClick={() => setPeriodFilter('monthly')}
-                    >
-                        Monthly
-                    </div>
-                    <div 
-                        className={`period-option ${periodFilter === 'annual' ? 'active' : ''} diet-period`}
-                        onClick={() => setPeriodFilter('annual')}
-                    >
-                        Annual
-                    </div>
-                    <div 
-                        className={`period-option ${periodFilter === 'all' ? 'active' : ''} diet-period`}
-                        onClick={() => setPeriodFilter('all')}
-                    >
-                        All
-                    </div>
+        <div className="past-diet-container">
+            <h3 className="past-diet-title">
+                <span className="icon">📅</span>
+                Past Diet Log
+            </h3>
+
+            <button 
+                className="calendar-toggle-button"
+                onClick={() => setShowCalendar(!showCalendar)}
+            >
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/>
+                </svg>
+                {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+            </button>
+
+            <div className={`calendar-container ${showCalendar ? 'visible' : ''}`}>
+                <Calendar
+                    onChange={handleCalendarChange}
+                    value={selectedDate}
+                    tileContent={tileContent}
+                />
+            </div>
+
+            <div className="period-filter">
+                <div 
+                    className={`period-option ${periodFilter === 'daily' ? 'active' : ''}`}
+                    onClick={() => setPeriodFilter('daily')}
+                >
+                    Daily
                 </div>
-                
-                {periodFilter !== 'all' && (
-                    <div className="date-selector">
-                        <label>Select {periodFilter.charAt(0).toUpperCase() + periodFilter.slice(1)}:</label>
-                        <input 
-                            type={getDatePickerProps().type}
-                            value={getDatePickerProps().value}
-                            min={getDatePickerProps().min}
-                            max={getDatePickerProps().max}
-                            onChange={handleDateChange}
-                        />
+                <div 
+                    className={`period-option ${periodFilter === 'weekly' ? 'active' : ''}`}
+                    onClick={() => setPeriodFilter('weekly')}
+                >
+                    Weekly
+                </div>
+                <div 
+                    className={`period-option ${periodFilter === 'monthly' ? 'active' : ''}`}
+                    onClick={() => setPeriodFilter('monthly')}
+                >
+                    Monthly
+                </div>
+                <div 
+                    className={`period-option ${periodFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setPeriodFilter('all')}
+                >
+                    All
+                </div>
+            </div>
+
+            <div className="past-meals-content">
+                {filteredData.length === 0 ? (
+                    <div className="empty-section-message">
+                        <p>No diet entries found for the selected period.</p>
+                        <p className="suggestion-text">Try selecting a different time period or add new entries.</p>
                     </div>
+                ) : (
+                    <>
+                        {filteredData.map((entry, index) => (
+                            <div key={index} className="meal-card" data-meal-type={entry.meal_type}>
+                                <div className="meal-card-header">
+                                    <h4>{entry.meal_type}</h4>
+                                    <div className="meal-datetime">
+                                        <span className="meal-date">
+                                            {new Date(entry.entry_time).toLocaleDateString([], {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            })}
+                                        </span>
+                                        <span className="meal-time">
+                                            {new Date(entry.entry_time).toLocaleTimeString([], { 
+                                                hour: '2-digit', 
+                                                minute: '2-digit'
+                                            })}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="meal-card-macros">
+                                    <div className="macro-item">
+                                        <div className="macro-value">{entry.calories}</div>
+                                        <div className="macro-label">Calories</div>
+                                    </div>
+                                    <div className="macro-item">
+                                        <div className="macro-value">{entry.protein_g}g</div>
+                                        <div className="macro-label">Protein</div>
+                                    </div>
+                                    <div className="macro-item">
+                                        <div className="macro-value">{entry.carbs_g}g</div>
+                                        <div className="macro-label">Carbs</div>
+                                    </div>
+                                    <div className="macro-item">
+                                        <div className="macro-value">{entry.fats_g}g</div>
+                                        <div className="macro-label">Fats</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        
+                        <button 
+                            className={`summary-toggle-button ${showSummary ? 'open' : ''}`}
+                            onClick={() => setShowSummary(!showSummary)}
+                        >
+                            {showSummary ? 'Hide Summary' : 'Show Summary'}
+                            <span className="summary-stats">
+                                ({filteredData.length} meals, {Math.round(macros.calories)} calories)
+                            </span>
+                        </button>
+                        
+                        {showSummary && (
+                            <div className="past-diet-summary">
+                                <h4>Past Diet Summary</h4>
+                                <p>
+                                    <span>Total Calories</span>
+                                    <span>{Math.round(macros.calories)}</span>
+                                </p>
+                                <p>
+                                    <span>Total Protein</span>
+                                    <span>{Math.round(macros.protein)}g</span>
+                                </p>
+                                <p>
+                                    <span>Total Carbs</span>
+                                    <span>{Math.round(macros.carbs)}g</span>
+                                </p>
+                                <p>
+                                    <span>Total Fats</span>
+                                    <span>{Math.round(macros.fats)}g</span>
+                                </p>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
-            
-            {filteredData.length === 0 ? (
-                <p>No diet entries found for the selected period.</p>
-            ) : (
-                <table className="diet-table">
-                    <thead>
-                        <tr>
-                            <th>Meal Type</th>
-                            <th>Calories</th>
-                            <th>Protein (g)</th>
-                            <th>Carbs (g)</th>
-                            <th>Fats (g)</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredData.map((entry) => (
-                            <tr key={entry.id}>
-                                <td>{entry.meal_type}</td>
-                                <td>{entry.calories}</td>
-                                <td>{entry.protein_g}</td>
-                                <td>{entry.carbs_g}</td>
-                                <td>{entry.fats_g}</td>
-                                <td>{new Date(entry.entry_time).toLocaleDateString()}</td>
-                                <td>
-                                    <button 
-                                        onClick={() => handleDeleteEntry(entry.id)}
-                                        className="delete-button"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
         </div>
     );
 }
