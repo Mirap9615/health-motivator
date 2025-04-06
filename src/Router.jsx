@@ -10,6 +10,7 @@ import Register from './Register.jsx';
 import Logout from './Logout.jsx';
 import About from './About.jsx';
 import AiChat from './AiChat.jsx';
+import MealPlanner from './MealPlanner.jsx';
 
 function AppRouter() {
     return (
@@ -27,6 +28,7 @@ function AppRouter() {
             <Route path="/logout" element={<Logout />} />
             <Route path="/about" element={<About />} />
             <Route path="/ai-chat" element={<AiChat />} />
+            <Route path="/meal-planner" element={<MealPlanner />} />
             <Route path="*" element={<Dashboard />} />
         </Routes>
         </Router>

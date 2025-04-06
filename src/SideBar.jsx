@@ -76,6 +76,7 @@ const SideBar = () => {
       <div className={`menu ${isOpen ? "menu-active" : ""}`}>
         <div className="logged-in-info">Logged in as {username}</div>
         <a href="/import">Import</a>
+        <a href="/meal-planner">Meal Planner</a>
         <a href="/profile">Profile</a>
         <a href="#" onClick={handleLogout}>Logout</a>
       </div>

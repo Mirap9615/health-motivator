@@ -57,7 +57,16 @@
 
 .left.cell {
   grid-area: a;
+  padding: 10px;
+  background-color: white;
+  color: #333;
 }
+
+.left.cell h3 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
 .middle.top {
   grid-area: b;
   display: flex;
@@ -126,6 +135,9 @@
 .macro-chart-container {
   text-align: center;
   padding: 10px 5px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .macro-details {
@@ -133,16 +145,19 @@
   width: fit-content;
   font-size: 14px;
   margin: 10px auto;
+  color: #333;
 }
 
 .macro-item {
   text-align: left;
   margin: 4px 0;
+  /* Color is set by inline style in DashboardPie.jsx */
 }
 
 .macro-calories {
   font-weight: bold;
   margin-top: 8px;
+  color: #333;
 }
 
 /* DashboardBar */
@@ -157,5 +172,38 @@
   margin: 0 0 10px 0;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* Form controls - consistent with MealPlanner */
+.form-control {
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 10px;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-control::placeholder {
+  color: #999;
+}
+
+/* Add any additional form styling for consistency */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 0.85rem;
 }
 

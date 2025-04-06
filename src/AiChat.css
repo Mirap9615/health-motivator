@@ -63,6 +63,19 @@
   border-bottom-left-radius: 4px;
 }
 
+.message-bubble.thinking {
+  position: relative;
+  background-color: #e3e3e3;
+  font-style: italic;
+  color: #444;
+  animation: thinkingPulse 1.5s infinite alternate;
+}
+
+@keyframes thinkingPulse {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
 /* Nutrition info display */
 .nutrition-display {
   margin-top: 10px;
@@ -90,6 +103,80 @@
 .nutrition-info li {
   margin-bottom: 3px;
   list-style-type: none;
+}
+
+/* Meal Planner Info Display */
+.planner-display {
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+.meal-planner-info h4 {
+  margin: 5px 0 12px 0;
+  font-weight: 600;
+  color: #4a4a4a;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.meal-options {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 5px;
+}
+
+.meal-option {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
+  max-width: 180px;
+  flex: 0 0 auto;
+}
+
+.meal-option h5 {
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.macro-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.macro-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.macro-badge.calorie {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.macro-badge.protein {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.macro-badge.carbs {
+  background-color: #cfe2ff;
+  color: #084298;
+}
+
+.macro-badge.fats {
+  background-color: #f8d7da;
+  color: #842029;
 }
 
 .chat-empty-state {
@@ -281,4 +368,50 @@
   background-color: #218838;
   transform: translateY(-2px);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Add to Planner button styles */
+.add-to-planner-button {
+  background-color: #6610f2;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.add-to-planner-button::before {
+  content: "📅";
+  margin-right: 4px;
+  font-size: 1rem;
+}
+
+.add-to-planner-button:hover {
+  background-color: #520dc2;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.select-meal-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.select-meal-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
 } 

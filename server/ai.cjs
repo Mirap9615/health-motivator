@@ -33,13 +33,29 @@ router.post('/generate', async (req, res) => {
       conversationHistories[conversationId] = [];
     }
     
+    // Add conversation style instructions to prevent formatting
+    const formattingInstructions = "Respond in a natural, conversational way. Do not use markdown formatting like bold (**), italic (*), code blocks (```), or other special formatting. Just use plain text in your response.";
+    
     // Handle freshConversation option - start a new conversation for this prompt only
     let messages;
     if (options.freshConversation) {
-      // Use only this message without history
-      messages = [{ role: "user", content: prompt }];
+      // Use only this message without history, add system message with instructions
+      messages = [
+        { role: "system", content: formattingInstructions },
+        { role: "user", content: prompt }
+      ];
       console.log(`Using fresh conversation for prompt: "${prompt.substring(0, 50)}..."`);
     } else {
+      // For ongoing conversations, check if we've already added instructions
+      if (conversationHistories[conversationId].length === 0 || 
+          conversationHistories[conversationId][0].role !== "system") {
+        // Prepend system message with instructions if not already present
+        conversationHistories[conversationId] = [
+          { role: "system", content: formattingInstructions },
+          ...conversationHistories[conversationId]
+        ];
+      }
+      
       // Add user message to history
       conversationHistories[conversationId].push({ role: "user", content: prompt });
       // Use full conversation history

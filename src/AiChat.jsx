@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from './SideBar.jsx';
 import { generateAIResponse, clearConversationHistory } from './services/aiServices';
-import { classifyUserPrompt, extractMacroInfo, generateWorkoutPrompt, generateHealthTipsPrompt, generateMealPrompt } from './services/promptServiceAI';
+import { classifyUserPrompt, extractMacroInfo, extractMealPlannerInfo, generateWorkoutPrompt, generateHealthTipsPrompt, generateMealPrompt } from './services/promptServiceAI';
 import './AiChat.css';
 
 const AiChat = () => {
@@ -13,7 +13,9 @@ const AiChat = () => {
   const [conversation, setConversation] = useState([]);
   const [chatMode, setChatMode] = useState('input'); // 'input' or 'quick'
   const [dietMessages, setDietMessages] = useState({});
+  const [plannerMessages, setPlannerMessages] = useState({});
   const [macroInfo, setMacroInfo] = useState({});
+  const [plannerInfo, setPlannerInfo] = useState({});
 
   // Effect to extract macro info when a diet-related message is added
   useEffect(() => {
@@ -44,6 +46,50 @@ const AiChat = () => {
     
     extractDietInfo();
   }, [conversation, dietMessages]);
+
+  // Effect to extract meal planner info when a meal-planner-related message is added
+  useEffect(() => {
+    const extractPlannerInfo = async () => {
+      const plannerRelatedMessages = conversation.filter(msg => msg.role === 'assistant' && msg.isMealPlannerRelated);
+      if (plannerRelatedMessages.length === 0) return;
+      
+      const latestMessage = plannerRelatedMessages[plannerRelatedMessages.length - 1];
+      if (!latestMessage.id || !plannerMessages[latestMessage.id]) return;
+      
+      // If we already have planner info for this message, don't re-extract
+      if (plannerInfo[latestMessage.id]) return;
+      
+      try {
+        const { userQuery, aiResponse } = plannerMessages[latestMessage.id];
+        const extractedInfo = await extractMealPlannerInfo(userQuery, aiResponse);
+        
+        if (extractedInfo) {
+          setPlannerInfo(prev => ({
+            ...prev,
+            [latestMessage.id]: extractedInfo
+          }));
+        }
+      } catch (error) {
+        console.error('Error extracting meal planner info:', error);
+      }
+    };
+    
+    extractPlannerInfo();
+  }, [conversation, plannerMessages]);
+
+  // Function to clean up formatting from AI responses
+  const cleanupFormatting = (text) => {
+    if (!text) return '';
+    
+    // Remove markdown-style formatting
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+      .replace(/\*(.*?)\*/g, '$1')     // Remove italic formatting
+      .replace(/__(.*?)__/g, '$1')     // Remove underline formatting
+      .replace(/~~(.*?)~~/g, '$1')     // Remove strikethrough
+      .replace(/```(.*?)```/gs, '$1')  // Remove code blocks
+      .replace(/`(.*?)`/g, '$1');      // Remove inline code
+  };
 
   // Handler for the "Add to Diet" button
   const handleAddToDiet = async (messageId) => {
@@ -89,6 +135,50 @@ const AiChat = () => {
     }
   };
 
+  // Handler for the "Add to Planner" button
+  const handleAddToPlanner = async (messageId) => {
+    try {
+      const messageInfo = plannerMessages[messageId];
+      if (!messageInfo) return;
+      
+      // Show loading state
+      setLoading(true);
+      
+      const { userQuery, aiResponse } = messageInfo;
+      
+      // Check if we already have planner info for this message
+      let mealSuggestions = plannerInfo[messageId];
+      
+      // If not, extract it now
+      if (!mealSuggestions) {
+        mealSuggestions = await extractMealPlannerInfo(userQuery, aiResponse);
+        
+        if (mealSuggestions) {
+          // Cache the extracted data
+          setPlannerInfo(prev => ({
+            ...prev,
+            [messageId]: mealSuggestions
+          }));
+        }
+      }
+      
+      // Navigate to the MealPlanner page with the meal suggestions
+      navigate('/meal-planner', {
+        state: {
+          source: 'aiChat',
+          messageContent: aiResponse,
+          userQuery: userQuery,
+          mealSuggestions: mealSuggestions
+        }
+      });
+    } catch (error) {
+      console.error('Error adding to meal planner:', error);
+      setError('Failed to process meal planning information. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Format nutrition info for display
   const formatNutritionInfo = (info) => {
     if (!info) return null;
@@ -102,6 +192,48 @@ const AiChat = () => {
           <li><strong>Carbs:</strong> {info.carbs_g}g</li>
           <li><strong>Fats:</strong> {info.fats_g}g</li>
         </ul>
+      </div>
+    );
+  };
+
+  // Format meal planner info for display
+  const formatMealPlannerInfo = (info) => {
+    if (!info || !info.meals || !info.plan_title) return null;
+    
+    // Function to handle selecting a specific meal
+    const handleSelectMeal = (meal) => {
+      // Navigate to meal planner with just this specific meal
+      navigate('/meal-planner', {
+        state: {
+          source: 'aiChat',
+          messageContent: "Selected individual meal from AI suggestions",
+          selectedMeal: meal
+        }
+      });
+    };
+    
+    return (
+      <div className="meal-planner-info">
+        <h4>{info.plan_title}</h4>
+        <div className="meal-options">
+          {info.meals.map((meal, index) => (
+            <div key={index} className="meal-option">
+              <h5>{meal.meal_name}</h5>
+              <div className="macro-badges">
+                <span className="macro-badge calorie">{meal.calories} cal</span>
+                <span className="macro-badge protein">{meal.protein_g}g protein</span>
+                <span className="macro-badge carbs">{meal.carbs_g}g carbs</span>
+                <span className="macro-badge fats">{meal.fats_g}g fats</span>
+              </div>
+              <button 
+                className="select-meal-button" 
+                onClick={() => handleSelectMeal(meal)}
+              >
+                Select This Meal
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -130,7 +262,7 @@ const AiChat = () => {
       // Use a fresh conversation without classification history to avoid confusion
       const result = await generateAIResponse(currentPrompt, {
         temperature: 0.7,
-        maxTokens: 2000, // Ensure we have enough tokens for a complete response
+        maxTokens: 500, // Ensure we have enough tokens for a complete response
         freshConversation: true // Signal to server this should be a clean conversation
       });
       
@@ -143,12 +275,16 @@ const AiChat = () => {
       // Generate a unique ID for this message pair
       const messageId = Date.now().toString();
       
+      // Clean up formatting in the AI response
+      const cleanedResponse = cleanupFormatting(result.response);
+      
       // Add AI response to conversation with classification info
       const aiMessage = { 
         id: messageId,
         role: 'assistant', 
-        content: result.response,
-        isDietRelated: messageType === 'diet'
+        content: cleanedResponse,
+        isDietRelated: messageType === 'diet',
+        isMealPlannerRelated: messageType === 'meal-planner'
       };
       
       setConversation(prev => [...prev, aiMessage]);
@@ -159,7 +295,18 @@ const AiChat = () => {
           ...prev,
           [messageId]: {
             userQuery: currentPrompt,
-            aiResponse: result.response
+            aiResponse: cleanedResponse
+          }
+        }));
+      }
+      
+      // If this is a meal-planner-related message, store the context for later use
+      if (messageType === 'meal-planner') {
+        setPlannerMessages(prev => ({
+          ...prev,
+          [messageId]: {
+            userQuery: currentPrompt,
+            aiResponse: cleanedResponse
           }
         }));
       }
@@ -197,8 +344,11 @@ const AiChat = () => {
         maxTokens: 300
       });
       
+      // Clean up formatting in the AI response
+      const cleanedResponse = cleanupFormatting(result.response);
+      
       // Add AI response to conversation
-      const aiMessage = { role: 'assistant', content: result.response };
+      const aiMessage = { role: 'assistant', content: cleanedResponse };
       setConversation(prev => [...prev, aiMessage]);
     } catch (err) {
       setError(err.message || "Failed to get health tips. Please try again.");
@@ -231,11 +381,14 @@ const AiChat = () => {
       // Generate a unique ID for this message pair
       const messageId = Date.now().toString();
       
+      // Clean up formatting in the AI response
+      const cleanedResponse = cleanupFormatting(result.response);
+      
       // Add AI response to conversation
       const aiMessage = { 
         id: messageId,
         role: 'assistant', 
-        content: result.response,
+        content: cleanedResponse,
         isDietRelated: true
       };
       
@@ -246,7 +399,7 @@ const AiChat = () => {
         ...prev,
         [messageId]: {
           userQuery,
-          aiResponse: result.response
+          aiResponse: cleanedResponse
         }
       }));
     } catch (err) {
@@ -272,8 +425,11 @@ const AiChat = () => {
         maxTokens: 1000
       });
       
+      // Clean up formatting in the AI response
+      const cleanedResponse = cleanupFormatting(result.response);
+      
       // Add AI response to conversation
-      const aiMessage = { role: 'assistant', content: result.response };
+      const aiMessage = { role: 'assistant', content: cleanedResponse };
       setConversation(prev => [...prev, aiMessage]);
     } catch (err) {
       setError(err.message || "Failed to get workout suggestions. Please try again.");
@@ -293,8 +449,12 @@ const AiChat = () => {
       setConversation([]);
       // Clear stored diet messages
       setDietMessages({});
+      // Clear stored planner messages
+      setPlannerMessages({});
       // Clear macro info
       setMacroInfo({});
+      // Clear planner info
+      setPlannerInfo({});
     } catch (err) {
       setError(err.message || "Failed to clear chat history. Please try again.");
     } finally {
@@ -321,6 +481,14 @@ const AiChat = () => {
                     {formatNutritionInfo(macroInfo[message.id])}
                   </div>
                 )}
+                
+                {/* Display meal planner info if available */}
+                {message.role === 'assistant' && message.isMealPlannerRelated && plannerInfo[message.id] && (
+                  <div className="nutrition-display planner-display">
+                    <hr />
+                    {formatMealPlannerInfo(plannerInfo[message.id])}
+                  </div>
+                )}
               </div>
               
               {/* Add to Diet button below the message bubble */}
@@ -334,9 +502,31 @@ const AiChat = () => {
                   </button>
                 </div>
               )}
+              
+              {/* Add to Planner button below the message bubble */}
+              {message.role === 'assistant' && message.isMealPlannerRelated && (
+                <div className="message-actions-below">
+                  <button 
+                    className="add-to-planner-button"
+                    onClick={() => handleAddToPlanner(message.id)}
+                  >
+                    Add to Planner
+                  </button>
+                </div>
+              )}
             </div>
           ))}
-          {conversation.length === 0 && (
+          
+          {/* Show thinking indicator within the chat when loading */}
+          {loading && (
+            <div className="chat-message assistant">
+              <div className="message-bubble thinking">
+                Thinking...
+              </div>
+            </div>
+          )}
+          
+          {conversation.length === 0 && !loading && (
             <div className="chat-empty-state">
               Start a conversation by typing a message below or using one of the quick actions.
             </div>
@@ -430,8 +620,6 @@ const AiChat = () => {
             </div>
           </div>
         )}
-        
-        {loading && <p className="loading-indicator">Processing your request...</p>}
         
         {error && (
           <div className="error-container">
