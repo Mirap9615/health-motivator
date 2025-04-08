@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from './SideBar.jsx';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import moment from 'moment';
 import './Diet.css';
 
 function Diet() {
@@ -385,17 +388,18 @@ function Diet() {
                 )}
 
                 {activeMainTab === 'pastLog' && (
-                    <PastDiet pastData={dietData} />
+                    <PastDiet pastData={dietData} handleDeleteEntry={handleDeleteEntry} />
                 )}
             </div>
         </>
     );
 }
 
-function PastDiet({ pastData }) {
+function PastDiet({ pastData, handleDeleteEntry }) {
     const [periodFilter, setPeriodFilter] = useState('all');
     const [filteredData, setFilteredData] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showCalendar, setShowCalendar] = useState(false);
     
     // Filter data based on selected period and date
     useEffect(() => {
@@ -463,9 +467,27 @@ function PastDiet({ pastData }) {
         setFilteredData(filtered);
     }, [pastData, periodFilter, selectedDate]);
     
-    // Handle date selection change
+    // Handle date selection change from input
     const handleDateChange = (e) => {
         setSelectedDate(new Date(e.target.value));
+    };
+    
+    // Handle date selection from calendar
+    const handleCalendarDateChange = (newDate) => {
+        setSelectedDate(newDate);
+        
+        // If we're not already on daily filter, switch to it
+        if (periodFilter !== 'daily') {
+            setPeriodFilter('daily');
+        }
+        
+        // Optionally hide calendar after selection
+        setShowCalendar(false);
+    };
+    
+    // Toggle calendar visibility
+    const toggleCalendar = () => {
+        setShowCalendar(prev => !prev);
     };
     
     // Get appropriate date input type and value based on period filter
@@ -484,6 +506,24 @@ function PastDiet({ pastData }) {
             default:
                 return { type: 'date', value: dateValue };
         }
+    };
+    
+    // Custom tile content for the calendar to show dots for days with diet entries
+    const tileContent = ({ date }) => {
+        // Format the date to check against entries
+        const formattedDate = moment(date).format('YYYY-MM-DD');
+        
+        // Check if there are any entries for this date
+        const hasEntries = pastData.some(entry => 
+            moment(entry.entry_time).format('YYYY-MM-DD') === formattedDate
+        );
+        
+        if (!hasEntries) return null;
+        
+        // If there are entries, show a dot
+        return (
+            <div className="diet-calendar-dot"></div>
+        );
     };
     
     // Get week number for a date
@@ -533,15 +573,35 @@ function PastDiet({ pastData }) {
                     </div>
                 </div>
                 
-                {periodFilter !== 'all' && (
-                    <div className="date-selector">
-                        <label>Select {periodFilter.charAt(0).toUpperCase() + periodFilter.slice(1)}:</label>
-                        <input 
-                            type={getDatePickerProps().type}
-                            value={getDatePickerProps().value}
-                            min={getDatePickerProps().min}
-                            max={getDatePickerProps().max}
-                            onChange={handleDateChange}
+                <div className="diet-calendar-controls">
+                    {periodFilter !== 'all' && (
+                        <div className="date-selector">
+                            <label>Select {periodFilter.charAt(0).toUpperCase() + periodFilter.slice(1)}:</label>
+                            <input 
+                                type={getDatePickerProps().type}
+                                value={getDatePickerProps().value}
+                                min={getDatePickerProps().min}
+                                max={getDatePickerProps().max}
+                                onChange={handleDateChange}
+                            />
+                        </div>
+                    )}
+                    
+                    <button 
+                        className="show-calendar-button" 
+                        onClick={toggleCalendar}
+                    >
+                        {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+                    </button>
+                </div>
+                
+                {showCalendar && (
+                    <div className="diet-calendar-container">
+                        <Calendar 
+                            onChange={handleCalendarDateChange}
+                            value={selectedDate}
+                            tileContent={tileContent}
+                            className="diet-calendar"
                         />
                     </div>
                 )}
