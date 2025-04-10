@@ -374,46 +374,46 @@ function DashboardHealthScore() {
       {/* Fixed position gauge container */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', position: 'relative' }}>
         <div style={{ width: '300px', height: '200px', position: 'relative' }}>
-          <ReactSpeedometer
-            width={300}
-            height={200}
-            value={score}
-            minValue={0}
-            maxValue={100}
-            segments={5}
-            currentValueText={`${score}/100`}
-            customSegmentLabels={[
-              {
-                text: "Poor",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Fair",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Good",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Great",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Excellent",
-                position: "INSIDE",
-                color: "#555",
-              },
-            ]}
-            segmentColors={["#FF4B4B", "#FFA500", "#FFDD00", "#90EE90", "#00FF00"]}
-            needleColor="#333"
-            textColor="#333"
-          />
-        </div>
+        <ReactSpeedometer
+          width={300}
+          height={200}
+          value={score}
+          minValue={0}
+          maxValue={100}
+          segments={5}
+          currentValueText={`${score}/100`}
+          customSegmentLabels={[
+            {
+              text: "Poor",
+              position: "INSIDE",
+              color: "#555",
+            },
+            {
+              text: "Fair",
+              position: "INSIDE",
+              color: "#555",
+            },
+            {
+              text: "Good",
+              position: "INSIDE",
+              color: "#555",
+            },
+            {
+              text: "Great",
+              position: "INSIDE",
+              color: "#555",
+            },
+            {
+              text: "Excellent",
+              position: "INSIDE",
+              color: "#555",
+            },
+          ]}
+          segmentColors={["#FF4B4B", "#FFA500", "#FFDD00", "#90EE90", "#00FF00"]}
+          needleColor="#333"
+          textColor="#333"
+        />
+      </div>
       </div>
       
       <p className="mt-2 mb-3 text-gray-600">{getScoreMessage()}</p>

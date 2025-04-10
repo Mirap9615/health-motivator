@@ -53,7 +53,7 @@ router.get("/diet/past", async (req, res) => {
 
   try {
       const result = await pool.query(
-          "SELECT meal_type, calories, protein_g, carbs_g, fats_g, entry_time FROM diet_entries WHERE user_id = $1 ORDER BY entry_time DESC",
+          "SELECT entry_id, meal_type, calories, protein_g, carbs_g, fats_g, entry_time FROM diet_entries WHERE user_id = $1 ORDER BY entry_time DESC",
           [user_id]
       );
 
@@ -195,7 +195,7 @@ router.delete("/savedmeals/:id", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-/*
+
 // Delete a diet entry
 router.delete("/diet/:id", async (req, res) => {
     if (!req.session.user) {
@@ -203,14 +203,11 @@ router.delete("/diet/:id", async (req, res) => {
     }
     
     const user_id = req.session.user.user_id;
-    const entry_id = req.params.id; // Get the entry ID from the request parameters
-
-    // Log the entry_id for debugging
-    console.log("Attempting to delete entry with ID:", entry_id);
+    const entry_id = req.params.id;
 
     try {
         const result = await pool.query(
-            "DELETE FROM diet_entries WHERE id = $1 AND user_id = $2 RETURNING *", // Ensure 'id' matches your table's primary key
+            "DELETE FROM diet_entries WHERE entry_id = $1 AND user_id = $2 RETURNING *",
             [entry_id, user_id]
         );
         
@@ -224,6 +221,5 @@ router.delete("/diet/:id", async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 });
-*/
 
 module.exports = router;

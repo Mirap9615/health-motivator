@@ -414,4 +414,78 @@
 .select-meal-button:hover {
   background-color: #0056b3;
   transform: translateY(-2px);
+}
+
+.ai-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
+}
+
+.restart-chat-button {
+  background-color: #f8f9fa;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.restart-chat-button:hover:not(:disabled) {
+  background-color: #dc3545;
+  color: white;
+}
+
+.restart-chat-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.restart-icon {
+  font-size: 16px;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.restart-chat-button:hover:not(:disabled) .restart-icon {
+  transform: rotate(180deg);
+}
+
+.notification {
+  padding: 12px 20px;
+  margin: 10px 0;
+  border-radius: 8px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.notification.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 } 
