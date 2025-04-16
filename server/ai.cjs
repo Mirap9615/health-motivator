@@ -25,53 +25,39 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ error: 'Invalid prompt provided' });
     }
     
-    // Get or create conversation ID
-    const conversationId = req.session?.id || 'default';
-    
-    // Get or initialize conversation history
-    if (!conversationHistories[conversationId]) {
-      conversationHistories[conversationId] = [];
-    }
+    // Get conversation history from options
+    const conversationHistory = options.conversationHistory || [];
     
     // Add conversation style instructions to prevent formatting
     const formattingInstructions = "Respond in a natural, conversational way. Do not use markdown formatting like bold (**), italic (*), code blocks (```), or other special formatting. Just use plain text in your response.";
     
-    // Handle freshConversation option - start a new conversation for this prompt only
-    let messages;
-    if (options.freshConversation) {
-      // Use only this message without history, add system message with instructions
-      messages = [
-        { role: "system", content: formattingInstructions },
-        { role: "user", content: prompt }
-      ];
-      console.log(`Using fresh conversation for prompt: "${prompt.substring(0, 50)}..."`);
-    } else {
-      // For ongoing conversations, check if we've already added instructions
-      if (conversationHistories[conversationId].length === 0 || 
-          conversationHistories[conversationId][0].role !== "system") {
-        // Prepend system message with instructions if not already present
-        conversationHistories[conversationId] = [
-          { role: "system", content: formattingInstructions },
-          ...conversationHistories[conversationId]
-        ];
-      }
-      
-      // Add user message to history
-      conversationHistories[conversationId].push({ role: "user", content: prompt });
-      // Use full conversation history
-      messages = [...conversationHistories[conversationId]];
+    // Prepare messages array
+    let messages = [
+      { role: "system", content: formattingInstructions }
+    ];
+    
+    // Add conversation history if available
+    if (conversationHistory.length > 0) {
+      // Convert conversation history to the format expected by the API
+      const formattedHistory = conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      messages = [...messages, ...formattedHistory];
     }
     
+    // Add the current prompt
+    messages.push({ role: "user", content: prompt });
+    
     // Set default parameters
-    const model = options.model || 'deepseek-chat'; // Use the appropriate DeepSeek model name
+    const model = options.model || 'deepseek-chat';
     const maxTokens = options.maxTokens || 10000;
     const temperature = options.temperature || 0.7;
     
     console.log(`AI Request - Prompt: "${prompt.substring(0, 50)}..." with model: ${model}`);
     console.log(`AI Request options:`, { 
       maxTokens, 
-      temperature, 
-      freshConversation: options.freshConversation,
+      temperature,
       conversationLength: messages.length 
     });
     
@@ -83,17 +69,7 @@ router.post('/generate', async (req, res) => {
       temperature: temperature,
     });
     
-    // Add AI response to conversation history (only if not using freshConversation)
     const aiResponse = completion.choices[0].message.content;
-    
-    if (!options.freshConversation) {
-      conversationHistories[conversationId].push({ role: "assistant", content: aiResponse });
-      
-      // Truncate history if it gets too long (keep last 10 messages)
-      if (conversationHistories[conversationId].length > 10) {
-        conversationHistories[conversationId] = conversationHistories[conversationId].slice(-10);
-      }
-    }
     
     console.log('AI Response received:', {
       usage: completion.usage,

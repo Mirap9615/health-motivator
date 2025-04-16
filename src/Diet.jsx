@@ -33,6 +33,8 @@ function Diet() {
         avgFats: 0,
     });    
 
+    const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
     useEffect(() => {
         fetch("/api/entries/diet/past", { method: "GET", credentials: "include" })
             .then((res) => res.json())
@@ -260,28 +262,55 @@ function Diet() {
         navigate('/import', { state: { formType: 'diet' } });
     };
 
-    const handleDeleteEntry = (entryId) => {
-        console.log(`Attempting to delete entry with ID: ${entryId}`);
-        fetch(`/api/entries/diet/${entryId}`, { method: 'DELETE', credentials: 'include' })
-            .then((response) => {
-                if (response.ok) {
-                    setDietData((prevData) => prevData.filter(entry => entry.id !== entryId));
-                    console.log(`Entry with ID: ${entryId} deleted successfully.`);
-                } else {
-                    console.error("Error deleting entry:", response.statusText);
-                    alert("Failed to delete entry. Please try again.");
-                }
-            })
-            .catch((error) => {
-                console.error("Error deleting entry:", error);
-                alert("An error occurred while trying to delete the entry.");
+    const handleDeleteEntry = async (entryId) => {
+        try {
+            const response = await fetch(`/api/entries/diet/${entryId}`, { 
+                method: 'DELETE', 
+                credentials: 'include' 
             });
+            
+            if (response.ok) {
+                // Update the diet data state by filtering out the deleted entry
+                setDietData(prevData => prevData.filter(entry => entry.entry_id !== entryId));
+                
+                // Show success notification
+                setNotification({
+                    show: true,
+                    message: 'Diet entry deleted successfully',
+                    type: 'success'
+                });
+            } else {
+                const errorData = await response.json();
+                setNotification({
+                    show: true,
+                    message: errorData.error || 'Failed to delete entry',
+                    type: 'error'
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting entry:", error);
+            setNotification({
+                show: true,
+                message: 'An error occurred while deleting the entry',
+                type: 'error'
+            });
+        }
+        
+        // Hide notification after 3 seconds
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: '' });
+        }, 3000);
     };
 
     return (
         <>
             <SideBar />
             <div className="diet-container">
+                {notification.show && (
+                    <div className={`notification ${notification.type}`}>
+                        {notification.message}
+                    </div>
+                )}
                 <div className="diet-header">
                     <h1 className="diet-title">Diet Overview</h1>
                     <button className="add-diet-button" onClick={handleNavigateToImport}>
@@ -633,7 +662,7 @@ function PastDiet({ pastData, handleDeleteEntry }) {
                                 <td>{new Date(entry.entry_time).toLocaleDateString()}</td>
                                 <td>
                                     <button 
-                                        onClick={() => handleDeleteEntry(entry.id)}
+                                        onClick={() => handleDeleteEntry(entry.entry_id)}
                                         className="delete-button"
                                     >
                                         Delete

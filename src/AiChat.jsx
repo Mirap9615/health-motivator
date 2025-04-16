@@ -10,12 +10,31 @@ const AiChat = () => {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [conversation, setConversation] = useState([]);
+  const [conversation, setConversation] = useState(() => {
+    const savedHistory = localStorage.getItem('aiChatHistory');
+    try {
+      return savedHistory ? JSON.parse(savedHistory) : [];
+    } catch (e) {
+      console.error("Failed to parse chat history from localStorage", e);
+      return [];
+    }
+  });
   const [chatMode, setChatMode] = useState('input'); // 'input' or 'quick'
   const [dietMessages, setDietMessages] = useState({});
   const [plannerMessages, setPlannerMessages] = useState({});
   const [macroInfo, setMacroInfo] = useState({});
   const [plannerInfo, setPlannerInfo] = useState({});
+  const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
+  useEffect(() => {
+    if (conversation.length > 0) {
+      try {
+        localStorage.setItem('aiChatHistory', JSON.stringify(conversation));
+      } catch (e) {
+        console.error("Failed to save chat history to localStorage", e);
+      }
+    }
+  }, [conversation]);
 
   // Effect to extract macro info when a diet-related message is added
   useEffect(() => {
@@ -258,12 +277,11 @@ const AiChat = () => {
       const messageType = await classifyUserPrompt(currentPrompt);
       console.log("Classification result:", messageType);
       
-      // Get the normal AI response to display to the user
-      // Use a fresh conversation without classification history to avoid confusion
+      // Get the normal AI response using the conversation history
       const result = await generateAIResponse(currentPrompt, {
         temperature: 0.7,
-        maxTokens: 500, // Ensure we have enough tokens for a complete response
-        freshConversation: true // Signal to server this should be a clean conversation
+        maxTokens: 500,
+        conversationHistory: conversation // Pass the full conversation history
       });
       
       if (!result || !result.response) {
@@ -443,7 +461,18 @@ const AiChat = () => {
     try {
       setLoading(true);
       
-      await clearConversationHistory();
+      // Clear backend conversation history
+      const response = await fetch('/api/ai/clear-history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to clear backend conversation history');
+      }
       
       // Clear the local conversation state
       setConversation([]);
@@ -455,8 +484,25 @@ const AiChat = () => {
       setMacroInfo({});
       // Clear planner info
       setPlannerInfo({});
+      
+      // Clear localStorage
+      localStorage.removeItem('aiChatHistory');
+      
+      // Show success notification
+      setNotification({
+        show: true,
+        message: 'Chat history cleared successfully',
+        type: 'success'
+      });
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification({ show: false, message: '', type: '' });
+      }, 3000);
+      
     } catch (err) {
-      setError(err.message || "Failed to clear chat history. Please try again.");
+      console.error('Error clearing chat:', err);
+      setError(err.message || 'Failed to clear chat history. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -466,7 +512,23 @@ const AiChat = () => {
     <>
       <SideBar />
       <div className="ai-chat-container">
-        <h3 className='ai-chat-title'>AI Health Coach</h3>
+        <div className="ai-chat-header">
+          <h3 className='ai-chat-title'>AI Health Coach</h3>
+          <button 
+            onClick={handleClearChat} 
+            disabled={loading || conversation.length === 0}
+            className="restart-chat-button"
+            title="Clear conversation history"
+          >
+            <span className="restart-icon">↻</span> Restart Chat
+          </button>
+        </div>
+        
+        {notification.show && (
+          <div className={`notification ${notification.type}`}>
+            {notification.message}
+          </div>
+        )}
         
         <div className="chat-conversation">
           {conversation.map((message, index) => (
