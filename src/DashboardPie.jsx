@@ -159,7 +159,7 @@ function DashboardPie({ timeView = 'daily' }) {
                         ? ((data.value / totalNutrients) * 100).toFixed(1)
                   : 0;
                 return (
-                        <p key={index} className="macro-item" style={{ color: `${COLORS[index]}` }}>
+                        <p key={index} className="macro-item" style={{ backgroundColor: `${COLORS[index]}`, color: 'black' }}>
                     {data.name}: {data.value} g ({percent}%)
                   </p>
                 );
