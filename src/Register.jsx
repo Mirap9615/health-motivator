@@ -27,7 +27,8 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        navigate('/home');
+        // Force page reload to ensure authentication state is refreshed
+        window.location.href = '/dashboard';
       } else {
         setErrorMessage(data.error || "Registration failed. Please try again.");
       }

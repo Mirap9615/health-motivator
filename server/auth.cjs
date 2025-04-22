@@ -91,12 +91,17 @@ router.post(
   }
 );
 
-router.get("/check-auth", (req, res) => {
+router.get("/check", (req, res) => {
+  console.log("Auth check called");
+  console.log("Session:", req.session);
   console.log("Session User:", req.session.user); 
+  console.log("Cookies:", req.headers.cookie);
 
   if (req.session && req.session.user) {
+      console.log("User is authenticated:", req.session.user);
       res.json({ authenticated: true, user: req.session.user });
   } else {
+      console.log("User is not authenticated");
       res.json({ authenticated: false, user: null }); 
   }
 });

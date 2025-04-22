@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactSpeedometer from "react-d3-speedometer";
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ function DashboardHealthScore() {
   });
   const [loading, setLoading] = useState(true);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const popupRef = useRef(null);
   const navigate = useNavigate();
 
   // Reference values based on general guidelines
@@ -357,165 +358,152 @@ function DashboardHealthScore() {
     }
   };
 
+  // Close popup when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setShowBreakdown(false);
+      }
+    }
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      // Clean up event listener
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [popupRef]);
+
   // Toggle the score breakdown visibility
-  const toggleBreakdown = () => {
+  const toggleBreakdown = (e) => {
+    e.stopPropagation();
     setShowBreakdown(prev => !prev);
   };
 
-  // Navigate to AI Coach page
-  const goToAiCoach = () => {
-    navigate('/ai-chat');
+  // Get score message with info icon
+  const getScoreMessageWithIcon = () => {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+        <span>{getScoreMessage()}</span>
+        <div style={{ position: 'relative', marginLeft: '10px' }}>
+          <button 
+            onClick={toggleBreakdown}
+            style={{
+              backgroundColor: '#333',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+            aria-label="Show score breakdown"
+          >
+            i
+          </button>
+          
+          {/* Popup for breakdown info */}
+          {showBreakdown && (
+            <div 
+              ref={popupRef}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '30px',
+                transform: 'translateY(-50%)',
+                width: '280px',
+                backgroundColor: 'white',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                borderRadius: '8px',
+                padding: '12px',
+                zIndex: 100,
+                textAlign: 'left',
+                fontSize: '0.9rem',
+                lineHeight: '1.5'
+              }}
+            >
+              <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>Score Breakdown:</div>
+              <div style={{ marginBottom: '6px' }}><strong>Calories:</strong> {scoreBreakdown.calories.message}</div>
+              <div style={{ marginBottom: '6px' }}><strong>Protein:</strong> {scoreBreakdown.protein.message}</div>
+              <div style={{ marginBottom: '6px' }}><strong>Carbohydrates:</strong> {scoreBreakdown.carbs.message}</div>
+              <div style={{ marginBottom: '6px' }}><strong>Fats:</strong> {scoreBreakdown.fats.message}</div>
+              <div><strong>Consistency:</strong> {scoreBreakdown.consistency.message}</div>
+              
+              {/* Arrow pointing to the info button */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '-10px',
+                transform: 'translateY(-50%)',
+                width: '10px',
+                height: '20px',
+                clipPath: 'polygon(0 50%, 100% 0, 100% 100%)',
+                backgroundColor: 'white'
+              }}></div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="text-center">
-      <h2 className="mb-4">Your Diet Health Score</h2>
+      <h2 className="mb-4" style={{ textAlign: 'center' }}>Your Diet Health Score</h2>
       
       {/* Fixed position gauge container */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', position: 'relative' }}>
         <div style={{ width: '300px', height: '200px', position: 'relative' }}>
-        <ReactSpeedometer
-          width={300}
-          height={200}
-          value={score}
-          minValue={0}
-          maxValue={100}
-          segments={5}
-          currentValueText={`${score}/100`}
-          customSegmentLabels={[
-            {
-              text: "Poor",
-              position: "INSIDE",
-              color: "#555",
-            },
-            {
-              text: "Fair",
-              position: "INSIDE",
-              color: "#555",
-            },
-            {
-              text: "Good",
-              position: "INSIDE",
-              color: "#555",
-            },
-            {
-              text: "Great",
-              position: "INSIDE",
-              color: "#555",
-            },
-            {
-              text: "Excellent",
-              position: "INSIDE",
-              color: "#555",
-            },
-          ]}
-          segmentColors={["#FF4B4B", "#FFA500", "#FFDD00", "#90EE90", "#00FF00"]}
-          needleColor="#333"
-          textColor="#333"
-        />
-      </div>
-      </div>
-      
-      <p className="mt-2 mb-3 text-gray-600">{getScoreMessage()}</p>
-      
-      <div style={{ marginBottom: '15px' }}>
-        {showBreakdown ? (
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button 
-              onClick={toggleBreakdown}
-              style={{
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '500',
-                fontSize: '0.9rem'
-              }}
-            >
-              Hide Score Breakdown▲
-            </button>
-            <button 
-              onClick={goToAiCoach}
-              style={{
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '500',
-                fontSize: '0.9rem'
-              }}
-            >
-              Consult AI Coach
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button 
-              onClick={toggleBreakdown}
-              style={{
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '500',
-                fontSize: '0.9rem'
-              }}
-            >
-              Show Score Breakdown▼
-            </button>
-            <button 
-              onClick={goToAiCoach}
-              style={{
-                backgroundColor: '#333',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '500',
-                fontSize: '0.9rem'
-              }}
-            >
-              Consult AI Coach
-            </button>
-          </div>
-        )}
-      </div>
-      
-      {/* Non-collapsible breakdown section */}
-      {showBreakdown && (
-        <div style={{
-          textAlign: 'left',
-          fontSize: '0.9rem',
-          lineHeight: '1.5',
-          marginBottom: '10px'
-        }}>
-          <div><strong>Score Breakdown:</strong></div>
-          <div><strong>Calories:</strong> {scoreBreakdown.calories.message}</div>
-          <div><strong>Protein:</strong> {scoreBreakdown.protein.message}</div>
-          <div><strong>Carbohydrates:</strong> {scoreBreakdown.carbs.message}</div>
-          <div><strong>Fats:</strong> {scoreBreakdown.fats.message}</div>
-          <div><strong>Consistency:</strong> {scoreBreakdown.consistency.message}</div>
+          <ReactSpeedometer
+            width={300}
+            height={200}
+            value={score}
+            minValue={0}
+            maxValue={100}
+            segments={5}
+            currentValueText={`${score}/100`}
+            customSegmentLabels={[
+              {
+                text: "Poor",
+                position: "INSIDE",
+                color: "#555",
+              },
+              {
+                text: "Fair",
+                position: "INSIDE",
+                color: "#555",
+              },
+              {
+                text: "Good",
+                position: "INSIDE",
+                color: "#555",
+              },
+              {
+                text: "Great",
+                position: "INSIDE",
+                color: "#555",
+              },
+              {
+                text: "Excellent",
+                position: "INSIDE",
+                color: "#555",
+              },
+            ]}
+            segmentColors={["#FF4B4B", "#FFA500", "#FFDD00", "#90EE90", "#00FF00"]}
+            needleColor="#333"
+            textColor="#333"
+          />
         </div>
-      )}
+      </div>
+      
+      <div className="mt-2 mb-3 text-gray-600">
+        {getScoreMessageWithIcon()}
+      </div>
     </div>
   );
 }

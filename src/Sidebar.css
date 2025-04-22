@@ -120,12 +120,34 @@
 }
 
 .logged-in-info {
-    font-size: 0.8em;
-    color: gray;
-    margin-top: 10px;
+    padding: 15px 10px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    margin-bottom: 10px;
     text-align: center;
 }
 
+.user-avatar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.user-avatar svg {
+    color: #666;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 
 @media (min-width: 768px) {
     .menu-text {
@@ -156,14 +178,7 @@
     opacity: 0.8;
 }
 
-.logged-in-info {
-    font-size: 0.8em;
-    color: gray;
-    margin-top: 10px;
-    text-align: center;
-}
-
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
     .menu-text {
         color: white;
     }
@@ -179,11 +194,20 @@
     }
 
     .logged-in-info {
-        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .user-avatar svg {
+        color: #ddd;
+        background-color: #555;
+    }
+    
+    .user-name {
+        color: #ddd;
     }
 
     .menu a {
         color: whitesmoke;
         text-decoration: none;
     }
-  }
+}
