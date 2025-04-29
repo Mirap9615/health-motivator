@@ -38,6 +38,7 @@ function Fitness() {
             .then((data) => {
                 setFitnessData(data);
                 processFitnessData(data);
+                console.log(data);
             })
             .catch((error) => console.error("Error fetching past data:", error));
     }, []);

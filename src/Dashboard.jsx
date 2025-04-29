@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import SideBar from "./SideBar.jsx";
-import { Card, Title, Text, Progress, Grid } from "@mantine/core";
 import "./Dashboard.css";
 import DashboardPie from "./DashboardPie.jsx";
 import DashboardChecklist from "./DashboardChecklist.jsx";
 import DashboardBar from "./DashboardBar.jsx";
-import DashboardHealthScore from "./DashboardHealthScore.jsx";
+import DietScore from "./DashboardDietScore.jsx";
+import DashboardExerciseScore from "./DashboardExerciseScore.jsx";
+import DashboardTotalScore from "./DashboardTotalScore.jsx";
 import LoadingSpinner from "./LoadingSpinner.jsx";
 
 const DAILY_CALORIE_GOAL = 2500;
@@ -23,31 +24,27 @@ const Dashboard = () => {
   const [dietData, setDietData] = useState([]);
   const [fitnessChartData, setFitnessChartData] = useState([]);
   const [dietChartData, setDietChartData] = useState([]);
+  const [activeMetricTab, setActiveMetricTab] = useState('diet');
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Fetch fitness data
         const fitnessRes = await fetch("/api/entries/fitness/past");
         const fitnessDataResponse = await fitnessRes.json();
         setFitnessData(fitnessDataResponse);
         
-        // Fetch diet data
         const dietRes = await fetch("/api/entries/diet/past");
         const dietDataResponse = await dietRes.json();
         setDietData(dietDataResponse);
 
-        // Calculate summary statistics
         const fitnessSummary = calculateDailyAverages(fitnessDataResponse, ["steps", "duration_min", "calories_burned"]);
         const dietSummary = calculateDailyAverages(dietDataResponse, ["calories", "protein_g", "carbs_g", "fats_g"]);
 
         const userStats = { ...fitnessSummary, ...dietSummary };
         setUserData(userStats);
 
-        // Calculate health score
         setHealthScore(computeHealthScore(userStats));
 
-        // Process data for charts
         processChartData(fitnessDataResponse, dietDataResponse);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -58,14 +55,13 @@ const Dashboard = () => {
   }, []);
 
   const processChartData = (fitnessEntries, dietEntries) => {
-    // Get dates for the past week (Sunday to Saturday)
     const today = new Date();
     const pastWeekDates = [];
     
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
-      pastWeekDates.unshift(date); // Add to beginning so oldest is first
+      pastWeekDates.unshift(date); 
     }
     
     pastWeekDates.sort((a, b) => a.getDay() - b.getDay());
@@ -76,9 +72,8 @@ const Dashboard = () => {
     if (fitnessEntries && fitnessEntries.length > 0) {
       fitnessEntries.forEach(entry => {
         const entryDate = new Date(entry.entry_time);
-        const dayOfWeek = entryDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const dayOfWeek = entryDate.getDay(); // 0 = Sunday
         
-        // Check if entry is within the past week
         const isWithinPastWeek = pastWeekDates.some(date => 
           date.getDate() === entryDate.getDate() && 
           date.getMonth() === entryDate.getMonth() && 
@@ -91,13 +86,11 @@ const Dashboard = () => {
       });
     }
     
-    // Process diet data
     if (dietEntries && dietEntries.length > 0) {
       dietEntries.forEach(entry => {
         const entryDate = new Date(entry.entry_time);
-        const dayOfWeek = entryDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        
-        // Check if entry is within the past week
+        const dayOfWeek = entryDate.getDay();
+      
         const isWithinPastWeek = pastWeekDates.some(date => 
           date.getDate() === entryDate.getDate() && 
           date.getMonth() === entryDate.getMonth() && 
@@ -119,7 +112,7 @@ const Dashboard = () => {
   }
 
   const calorieDifference = userData.calories - DAILY_CALORIE_GOAL;
-  const calorieStatus = calorieDifference > 0 ? `⚠️ ${calorieDifference} kcal over` : `✅ Within target`;
+  const calorieStatus = calorieDifference > 0 ? `${calorieDifference} kcal over` : ` Within target`;
 
   return (
     <div className="dashboard-container">
@@ -127,19 +120,49 @@ const Dashboard = () => {
       <div className="dashboard-content">
         <div className="dashboard-grid-container">
             <div className="left cell">
-                <div className="toggle-container">
-                    <button className={`toggle-btn ${selected === 'daily' ? 'active' : ''}`} onClick={() => setSelected('daily')}>
-                        Daily
+            <div className="section-toggle-container">
+              <button 
+                className={`section-toggle-btn ${activeMetricTab === 'diet' ? 'section-active' : ''}`}
+                onClick={() => setActiveMetricTab('diet')}
+              >
+                Diet
+              </button>
+              <button 
+                className={`section-toggle-btn ${activeMetricTab === 'exercise' ? 'section-active' : ''}`}
+                onClick={() => setActiveMetricTab('exercise')}
+              >
+                Exercise
+              </button>
+            </div>
+            {activeMetricTab === 'diet' && <DietScore score={healthScore} />}
+            {activeMetricTab === 'exercise' && <DashboardExerciseScore />}
+            {activeMetricTab === 'diet' && (
+                <>
+                  <div className="toggle-container">
+                    <button 
+                      className={`toggle-btn ${selected === 'daily' ? 'active' : ''}`} 
+                      onClick={() => setSelected('daily')}
+                    >
+                      Daily
                     </button>
-                    <button className={`toggle-btn ${selected === 'weekly' ? 'active' : ''}`} onClick={() => setSelected('weekly')}>
-                        Weekly
+                    <button 
+                      className={`toggle-btn ${selected === 'weekly' ? 'active' : ''}`} 
+                      onClick={() => setSelected('weekly')}
+                    >
+                      Weekly
                     </button>
-                </div>
-                <h3 style={{textAlign: "center"}}>{selected === "daily" ? "Daily": "Weekly"} Macros Count</h3>
-                <DashboardPie timeView={selected} />
+                  </div>
+
+                  <h3 style={{textAlign: "center"}}>
+                    {selected === "daily" ? "Daily" : "Weekly"} Macros Count
+                  </h3>
+
+                  <DashboardPie timeView={selected} />
+                </>
+              )}
             </div>
             <div className="cell middle top">
-                <DashboardHealthScore score={healthScore} />
+                <DashboardTotalScore />
             </div>
             <div className="cell middle bottom">
                 <DashboardBar 

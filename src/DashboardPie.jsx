@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-const COLORS = ['#0088FE', '#00C49F', '#FF8042'];
+const COLORS = ['#0088FE', '#00C49F', '#FF8042', '#EEEEEE'];
 
-// Custom label renderer with smaller text
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }) => {
     const RADIAN = Math.PI / 180;
     const radius = outerRadius * 0.8;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
     return (
         <text 
             x={x} 
@@ -31,8 +29,9 @@ function DashboardPie({ timeView = 'daily' }) {
     ]);
     const [isLoading, setIsLoading] = useState(true);
     const [dietData, setDietData] = useState([]);
+    const [isNoData, setIsNoData] = useState(false);
+
     
-    // Fetch diet data from the backend
     useEffect(() => {
         const fetchDietData = async () => {
             try {
@@ -41,6 +40,7 @@ function DashboardPie({ timeView = 'daily' }) {
                 const data = await response.json();
                 setDietData(data);
                 processData(data, timeView);
+                console.log(data);
                 setIsLoading(false);
             } catch (error) {
                 console.error('Error fetching diet data:', error);
@@ -51,38 +51,35 @@ function DashboardPie({ timeView = 'daily' }) {
         fetchDietData();
     }, []);
     
-    // Process data whenever timeView changes
     useEffect(() => {
         if (dietData.length > 0) {
             processData(dietData, timeView);
         }
     }, [timeView, dietData]);
     
-    // Process and aggregate diet data based on the time view
     const processData = (data, view) => {
+        let filteredData = [];
+
         if (!data || data.length === 0) {
             setChartData([
-                { name: 'Carbs', value: 0 },
-                { name: 'Proteins', value: 0 },
-                { name: 'Fats', value: 0 },
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
             ]);
+            setIsNoData(true);
             return;
         }
         
-        // Filter data based on time view
-        let filteredData = [];
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
         if (view === 'daily') {
-            // Get entries from today
             filteredData = data.filter(entry => {
                 const entryDate = new Date(entry.entry_time);
                 entryDate.setHours(0, 0, 0, 0);
                 return entryDate.getTime() === today.getTime();
             });
         } else if (view === 'weekly') {
-            // Get entries from the past 7 days
             const weekAgo = new Date(today);
             weekAgo.setDate(today.getDate() - 7);
             
@@ -91,8 +88,19 @@ function DashboardPie({ timeView = 'daily' }) {
                 return entryDate >= weekAgo && entryDate <= today;
             });
         }
+
+        if (filteredData.length === 0) {
+            setChartData([
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
+            ]);
+            setIsNoData(true);
+            return;
+        } else {
+            setIsNoData(false);
+        }
         
-        // Calculate totals
         let totalCarbs = 0;
         let totalProtein = 0;
         let totalFats = 0;
@@ -102,8 +110,21 @@ function DashboardPie({ timeView = 'daily' }) {
             totalProtein += Number(entry.protein_g) || 0;
             totalFats += Number(entry.fats_g) || 0;
         });
+
+        const hasMacros = totalCarbs > 0 || totalProtein > 0 || totalFats > 0;
+
+        if (!hasMacros) {
+            setChartData([
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
+                { name: 'No Data', value: 0 },
+            ]);
+            setIsNoData(true);
+            return;
+        } else {
+            setIsNoData(false);
+        }
         
-        // Update chart data
       setChartData([
             { name: 'Carbs', value: Math.round(totalCarbs) },
             { name: 'Proteins', value: Math.round(totalProtein) },
@@ -112,11 +133,11 @@ function DashboardPie({ timeView = 'daily' }) {
     };
     
     const totalNutrients = chartData.reduce((sum, item) => sum + item.value, 0);
-    // Estimate total calories (4 cal/g for carbs and protein, 9 cal/g for fat)
-    const totalCalories = 
-        (chartData[0].value * 4) + // Carbs: 4 cal/g
-        (chartData[1].value * 4) + // Protein: 4 cal/g
-        (chartData[2].value * 9);  // Fats: 9 cal/g
+    const totalCalories = isNoData ? 0 : (
+        (chartData[0].value * 4) +
+        (chartData[1].value * 4) +
+        (chartData[2].value * 9)
+    );
 
     if (isLoading) {
         return <div>Loading macro data...</div>;
@@ -132,39 +153,56 @@ function DashboardPie({ timeView = 'daily' }) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                        outerRadius={90}
-                        innerRadius={0}
-                        labelLine={false}
-                        label={renderCustomizedLabel}
+                outerRadius={90}
+                innerRadius={0}
+                labelLine={false}
+                label={renderCustomizedLabel}
+                isAnimationActive={!isNoData}
+                animationDuration={800}
             >
                 {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell 
+                    key={`cell-${index}`} 
+                    fill={chartData.length === 1 && chartData[0].name === 'No Data' 
+                    ? '#EEEEEE' 
+                    : COLORS[index % COLORS.length]} 
+                />
                 ))}
             </Pie>
-                    <Tooltip formatter={(value) => `${value}g`} />
-                    <Legend 
-                        layout="horizontal" 
-                        verticalAlign="bottom" 
-                        align="center"
-                        wrapperStyle={{
-                            fontSize: '12px',
-                            paddingTop: '10px'
-                        }}
-                    />
+                <Tooltip 
+                formatter={(value, name) => 
+                    chartData.length === 1 && chartData[0].name === 'No Data'
+                    ? ['N/A', 'Not enough data']
+                    : [`${value}g`, name]
+                }
+                />
+                <Legend 
+                    layout="horizontal" 
+                    verticalAlign="bottom" 
+                    align="center"
+                    wrapperStyle={{
+                        fontSize: '12px',
+                        paddingTop: '10px'
+                    }}
+                />
             </PieChart>
             </ResponsiveContainer>
             <div className="macro-details">
-              {chartData.map((data, index) => {
-                    const percent = totalNutrients
-                        ? ((data.value / totalNutrients) * 100).toFixed(1)
-                  : 0;
-                return (
-                        <p key={index} className="macro-item" style={{ backgroundColor: `${COLORS[index]}`, color: 'black' }}>
-                    {data.name}: {data.value} g ({percent}%)
-                  </p>
-                );
-              })}
+            {chartData.length === 1 && chartData[0].name === 'No Data' ? (
+                <p style={{ fontSize: '14px', color: '#777' }}>Not enough data to display breakdown.</p>
+                ) : (
+                chartData.map((data, index) => {
+                    const percent = totalNutrients ? ((data.value / totalNutrients) * 100).toFixed(1) : 0;
+                    return (
+                    <p key={index} className="macro-item" style={{ backgroundColor: `${COLORS[index]}`, color: 'black' }}>
+                        {data.name}: {data.value} g ({percent}%)
+                    </p>
+                    );
+                })
+            )}
+            {!isNoData && (
                 <p className="macro-calories">Est. Calories: {Math.round(totalCalories)} kcal</p>
+            )}
             </div>
         </div>
     )

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SideBar from "./SideBar.jsx";
 import "./Profile.css";
-import { FiUser, FiSettings, FiTarget, FiActivity, FiShield, FiEdit, FiSave, FiX } from "react-icons/fi";
+import { FiUser, FiSettings, FiTarget, FiActivity, FiEdit, FiSave, FiX } from "react-icons/fi";
 import LoadingSpinner from "./LoadingSpinner.jsx";
 
 const Profile = () => {
@@ -30,6 +30,7 @@ const Profile = () => {
         if (response.ok) {
           setUser(data);
           setFormData(data);
+          console.log(data);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -51,6 +52,7 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    console.log(formData);
     try {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
@@ -127,9 +129,12 @@ const Profile = () => {
           {!isEditing ? (
             <div className="profile-info">
               <p><strong>Name:</strong> {user.name}</p>
-              <p><strong>Age:</strong> {user.age}</p>
               <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Activity Level:</strong> {user.activity_level}</p>
+              <p><strong>Age:</strong> {user.age}</p>
+              <p><strong>Gender:</strong> {user.gender}</p>
+              <p><strong>Height:</strong> {user.height_cm} cm</p>
+              <p><strong>Weight:</strong> {user.weight_kg} kg</p>
+              <p><strong>Declared Activity Level:</strong> {user.activity_level}</p>
             <button className="edit-button" onClick={handleEditToggle}>
               <FiEdit size={16} /> Edit Profile
             </button>
@@ -139,20 +144,37 @@ const Profile = () => {
               <label>Name:</label>
               <input type="text" name="name" value={formData.name} onChange={handleChange} />
 
-              <label>Age:</label>
-              <input type="number" name="age" value={formData.age} onChange={handleChange} />
-
               <label>Email:</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} disabled />
 
-              <label>Activity Level:</label>
-              <select name="activity_level" value={formData.activity_level} onChange={handleChange}>
-                <option>Sedentary</option>
-                <option>Moderate</option>
-                <option>Intermediate</option>
-                <option>Challenging</option>
-                <option>Advanced</option>
+              <label>Age:</label>
+              <input type="number" name="age" value={formData.age} onChange={handleChange} />
+
+              <label>Gender:</label>
+              <select name="gender" value={formData.gender || ""} onChange={handleChange}>
+                <option value="" disabled>Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
+
+              <label>Height (cm):</label>
+              <input type="number" step="0.1" name="height_cm" value={formData.height_cm} onChange={handleChange} min="0"/>
+
+              <label>Weight (kg):</label>
+              <input type="number" step="0.1" name="weight_kg" value={formData.weight_kg} onChange={handleChange} min="0"/>
+
+              <label>Activity Level:</label>
+              <select name="activity_level" value={formData.activity_level || ""} onChange={handleChange}>
+                <option value="" disabled>Select Activity Level</option>
+                <option value="Sedentary">Sedentary</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Challenging">Challenging</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+
+
 
               <div className="profile-buttons">
               <button className="save-button" onClick={handleSave}>

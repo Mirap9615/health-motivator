@@ -38,10 +38,12 @@ const isAuthenticated = (req, res, next) => {
 const authRoutes = require("./auth.cjs");
 const userRoutes = require("./user.cjs");
 const entryRoutes = require("./entries.cjs");
+const goalRoutes = require("./goals.cjs");
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/entries", entryRoutes);
-app.use('/api/ai', aiRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/goals", goalRoutes);
 
 app.listen(port, () => {
 console.log(`Server listening on ${port}`);

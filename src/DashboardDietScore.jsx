@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactSpeedometer from "react-d3-speedometer";
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from './LoadingSpinner'; 
 
-function DashboardHealthScore() {
+function DietScore() {
   const [score, setScore] = useState(45);
   const [dietData, setDietData] = useState([]);
+  const [userMetrics, setUserMetrics] = useState({});
   const [scoreBreakdown, setScoreBreakdown] = useState({
     calories: { score: 0, message: "" },
     protein: { score: 0, message: "" },
@@ -18,49 +20,18 @@ function DashboardHealthScore() {
   const popupRef = useRef(null);
   const navigate = useNavigate();
 
-  // Reference values based on general guidelines
-  // These should be personalized based on age, weight, gender, activity level
+  // Reference values, dynamicize later
   const REFERENCE = {
-    // Default reference values, should be customized per user
-    calories: {
-      min: 1800, // Minimum healthy daily calories
-      max: 2500, // Maximum healthy daily calories
-      weight: 0.3 // 30% of total score
-    },
-    protein: {
-      min: 50, // Minimum grams per day
-      ideal: 0.8, // 0.8g per kg of body weight
-      max: 2.0, // Maximum grams per kg body weight
-      weight: 0.25 // 25% of total score
-    },
-    carbs: {
-      min: 130, // Minimum grams per day
-      idealPercent: 0.5, // 50% of daily calories
-      maxPercent: 0.65, // 65% of daily calories
-      weight: 0.2 // 20% of total score
-    },
-    fats: {
-      minPercent: 0.2, // Minimum 20% of daily calories
-      idealPercent: 0.3, // Ideal 30% of daily calories
-      maxPercent: 0.35, // Maximum 35% of daily calories
-      weight: 0.15 // 15% of total score
-    },
-    consistency: {
-      weight: 0.1 // 10% of total score
-    }
-  };
-
-  const userMetrics = {
-    weight: 70, // kg, should be fetched from user profile
-    height: 175, // cm, should be fetched from user profile
-    age: 30, // years, should be fetched from user profile
-    gender: 'male', // should be fetched from user profile
-    activityLevel: 'moderate' // should be fetched from user profile
+    calories: { min: 1800, max: 2500, weight: 0.3 },
+    protein: { min: 50, ideal: 0.8, max: 2.0, weight: 0.25 }, // ideal/max are per kg
+    carbs: { min: 130, idealPercent: 0.5, maxPercent: 0.65, weight: 0.2 },
+    fats: { minPercent: 0.2, idealPercent: 0.3, maxPercent: 0.35, weight: 0.15 },
+    consistency: { weight: 0.1 }
   };
 
   useEffect(() => {
-    // Fetch diet data
     fetchDietData();
+    fetchUserData();
   }, []);
 
   const fetchDietData = async () => {
@@ -70,11 +41,9 @@ function DashboardHealthScore() {
         method: "GET", 
         credentials: "include"
       });
-      
       if (response.ok) {
         const data = await response.json();
         setDietData(data);
-        calculateHealthScore(data);
       } else {
         console.error("Failed to fetch diet data:", response.status);
       }
@@ -85,13 +54,37 @@ function DashboardHealthScore() {
     }
   };
 
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "GET",
+        credentials: "include"
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserMetrics(data);
+        console.log(data);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error) 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (dietData.length > 0 && userMetrics.weight_kg) {
+      calculateHealthScore(dietData);
+    }
+  }, [dietData, userMetrics]);
+
   const calculateHealthScore = (data) => {
     if (!data || data.length === 0) {
       setScore(0);
       return;
     }
 
-    // Get data from the last 7 days
     const now = new Date();
     const past7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     
@@ -105,9 +98,7 @@ function DashboardHealthScore() {
       return;
     }
 
-    // Group data by day
     const dailyData = {};
-    
     recentData.forEach(entry => {
       const dateKey = moment(entry.entry_time).format('YYYY-MM-DD');
       
@@ -130,7 +121,6 @@ function DashboardHealthScore() {
 
     const dayCount = Object.keys(dailyData).length;
     
-    // Calculate average daily values
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
@@ -148,24 +138,13 @@ function DashboardHealthScore() {
     const avgCarbs = totalCarbs / dayCount;
     const avgFats = totalFats / dayCount;
 
-    // Calculate score for each component
-    
-    // 1. Calorie score - based on how close to recommended range
+    // Score calculation based on all components 
     const calorieScore = calculateCalorieScore(avgCalories);
-    
-    // 2. Protein score - based on protein per kg of body weight
     const proteinScore = calculateProteinScore(avgProtein);
-    
-    // 3. Carbs score - based on percentage of total calories
     const carbsScore = calculateCarbsScore(avgCarbs, avgCalories);
-    
-    // 4. Fats score - based on percentage of total calories
     const fatsScore = calculateFatsScore(avgFats, avgCalories);
-    
-    // 5. Consistency score - based on having data for multiple days
     const consistencyScore = calculateConsistencyScore(dayCount);
 
-    // Calculate weighted total score
     const totalScore = Math.round(
       calorieScore.score * REFERENCE.calories.weight +
       proteinScore.score * REFERENCE.protein.weight +
@@ -174,7 +153,6 @@ function DashboardHealthScore() {
       consistencyScore.score * REFERENCE.consistency.weight
     );
 
-    // Update state with the calculated score and breakdown
     setScore(totalScore);
     setScoreBreakdown({
       calories: calorieScore,
@@ -226,8 +204,8 @@ function DashboardHealthScore() {
 
   const calculateProteinScore = (avgProtein) => {
     const { min, ideal, max } = REFERENCE.protein;
-    const idealProtein = userMetrics.weight * ideal;
-    const maxProtein = userMetrics.weight * max;
+    const idealProtein = userMetrics.weight_kg * ideal;
+    const maxProtein = userMetrics.weight_kg * max;
     let score = 0;
     let message = "";
 
@@ -358,7 +336,6 @@ function DashboardHealthScore() {
     }
   };
 
-  // Close popup when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
@@ -366,21 +343,17 @@ function DashboardHealthScore() {
       }
     }
 
-    // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Clean up event listener
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [popupRef]);
 
-  // Toggle the score breakdown visibility
   const toggleBreakdown = (e) => {
     e.stopPropagation();
     setShowBreakdown(prev => !prev);
   };
 
-  // Get score message with info icon
   const getScoreMessageWithIcon = () => {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
@@ -407,7 +380,6 @@ function DashboardHealthScore() {
             i
           </button>
           
-          {/* Popup for breakdown info */}
           {showBreakdown && (
             <div 
               ref={popupRef}
@@ -434,7 +406,6 @@ function DashboardHealthScore() {
               <div style={{ marginBottom: '6px' }}><strong>Fats:</strong> {scoreBreakdown.fats.message}</div>
               <div><strong>Consistency:</strong> {scoreBreakdown.consistency.message}</div>
               
-              {/* Arrow pointing to the info button */}
               <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -456,7 +427,6 @@ function DashboardHealthScore() {
     <div className="text-center">
       <h2 className="mb-4" style={{ textAlign: 'center' }}>Your Diet Health Score</h2>
       
-      {/* Fixed position gauge container */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '0 auto', position: 'relative' }}>
         <div style={{ width: '300px', height: '200px', position: 'relative' }}>
           <ReactSpeedometer
@@ -467,33 +437,6 @@ function DashboardHealthScore() {
             maxValue={100}
             segments={5}
             currentValueText={`${score}/100`}
-            customSegmentLabels={[
-              {
-                text: "Poor",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Fair",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Good",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Great",
-                position: "INSIDE",
-                color: "#555",
-              },
-              {
-                text: "Excellent",
-                position: "INSIDE",
-                color: "#555",
-              },
-            ]}
             segmentColors={["#FF4B4B", "#FFA500", "#FFDD00", "#90EE90", "#00FF00"]}
             needleColor="#333"
             textColor="#333"
@@ -508,4 +451,4 @@ function DashboardHealthScore() {
   );
 }
 
-export default DashboardHealthScore; 
+export default DietScore; 

@@ -498,6 +498,19 @@ const Import = () => {
                       placeholder="e.g. 5000"
                     />
                   </div>
+
+                  <div className="form-actions">
+                    <button className="cancel-button" onClick={() => setActiveForm(null)}>
+                      Cancel
+                    </button>
+                    <button 
+                      className={`submit-button ${!isFormValid(activeForm) ? 'disabled' : ''}`} 
+                      onClick={() => handleSubmit(activeForm)}
+                      disabled={!isFormValid(activeForm) || isSubmitting}
+                    >
+                      {isSubmitting ? 'Saving...' : 'Save Entry'}
+                    </button>
+                  </div>
               </>
             )}
 

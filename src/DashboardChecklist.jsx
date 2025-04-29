@@ -1,21 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './DashboardChecklist.css';
 import { generateAIResponse } from './services/aiServices';
 import { generateHealthTipsPrompt, generateMealPrompt, generateWorkoutPrompt } from './services/promptServiceAI';
 
 const DashboardChecklist = () => {
-  const dailyTasks = [
-    { id: 1, text: 'Complete 30 minutes of cardio', completed: false },
-    { id: 2, text: 'Eat 5 servings of vegetables', completed: false },
-    { id: 3, text: 'Drink 8 glasses of water', completed: false },
-  ];
-
-  const weeklyTasks = [
-    { id: 1, text: 'Complete 3 strength training sessions', completed: false },
-    { id: 2, text: 'Try one new healthy recipe', completed: false },
-    { id: 3, text: 'Take a rest day', completed: false },
-    { id: 4, text: 'Track all meals for the week', completed: false },
-  ];
 
   // Initial placeholder recommendations
   const initialDailyRecommendations = [
@@ -35,9 +23,11 @@ const DashboardChecklist = () => {
   
   // Goals section states
   const [selected, setSelected] = useState('daily');
-  const [dailyTasksState, setDailyTasksState] = useState(dailyTasks);
-  const [weeklyTasksState, setWeeklyTasksState] = useState(weeklyTasks);
+  const [dailyTasksState, setDailyTasksState] = useState([]);
+  const [weeklyTasksState, setWeeklyTasksState] = useState([]);
   const [highlightedItem, setHighlightedItem] = useState(null);
+  const [isLoadingGoals, setIsLoadingGoals] = useState(true);
+  const [goalError, setGoalError] = useState(null);
   
   // Recommendations section state
   const [recommendationView, setRecommendationView] = useState('daily');
@@ -47,6 +37,38 @@ const DashboardChecklist = () => {
   const [previousDailyRecommendations, setPreviousDailyRecommendations] = useState([...initialDailyRecommendations]);
   const [previousWeeklyRecommendations, setPreviousWeeklyRecommendations] = useState([...initialWeeklyRecommendations]);
   const [loadingRecommendation, setLoadingRecommendation] = useState(false);
+
+  const fetchGoals = useCallback(async () => {
+    setIsLoadingGoals(true);
+    setGoalError(null);
+    setDailyTasksState([]); 
+    setWeeklyTasksState([]);
+    try {
+      const response = await fetch('/api/goals'); 
+      if (!response.ok) {
+        if (response.status === 401) {
+           console.error("Unauthorized fetching goals");
+           setGoalError("Please log in to view goals.");
+        } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } else {
+          const data = await response.json(); 
+          setDailyTasksState(data.daily || []);
+          setWeeklyTasksState(data.weekly || []);
+          console.log(data);
+      }
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      setGoalError("Failed to load goals. Please try again later.");
+    } finally {
+      setIsLoadingGoals(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
 
   // Fetch AI recommendations on mount
   useEffect(() => {
@@ -147,29 +169,46 @@ const DashboardChecklist = () => {
     console.log('Highlighted recommendation:', highlightedRecommendation);
   }, [highlightedRecommendation]);
 
-  const toggleDailyTaskCompletion = (taskId) => {
-    setDailyTasksState((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
+  const toggleTaskCompletion = useCallback(async (goalKey) => {
+    const isDaily = selected === 'daily';
+    const currentTasks = isDaily ? dailyTasksState : weeklyTasksState;
+    const taskIndex = currentTasks.findIndex(task => task.key === goalKey);
+    if (taskIndex === -1) return;
 
-  const toggleWeeklyTaskCompletion = (taskId) => {
-    setWeeklyTasksState((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
+    const updatedTasks = [...currentTasks];
+    const originalCompletedStatus = updatedTasks[taskIndex].completed;
+    updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], completed: !originalCompletedStatus };
 
-  const handleItemClick = (taskId) => {
-    // Replace current selection instead of adding to array
-    setHighlightedItem(highlightedItem === taskId ? null : taskId);
+    if (isDaily) {
+        setDailyTasksState(updatedTasks);
+    } else {
+        setWeeklyTasksState(updatedTasks);
+    }
+
+    try {
+        const response = await fetch(`/api/goals/${goalKey}/toggle`, { method: 'POST' });
+        if (!response.ok) {
+            throw new Error(`Failed to toggle task: ${response.statusText}`);
+        }
+
+    } catch (error) {
+        console.error("Error toggling task completion:", error);
+        // optimistic update reversion in case of error
+        updatedTasks[taskIndex] = { ...updatedTasks[taskIndex], completed: originalCompletedStatus };
+         if (isDaily) {
+            setDailyTasksState(updatedTasks);
+        } else {
+            setWeeklyTasksState(updatedTasks);
+        }
+        setGoalError("Failed to update goal status.");
+    }
+  }, [selected, dailyTasksState, weeklyTasksState]);
+
+  const handleItemClick = (goalKey) => {
+    setHighlightedItem(highlightedItem === goalKey ? null : goalKey);
   };
   
   const handleRecommendationClick = (index) => {
-    // Replace current selection instead of adding to array
     setHighlightedRecommendation(highlightedRecommendation === index ? null : index);
   };
 
@@ -272,13 +311,11 @@ const DashboardChecklist = () => {
   };
 
   const currentTasks = selected === 'daily' ? dailyTasksState : weeklyTasksState;
-  const toggleTaskCompletion = selected === 'daily' ? toggleDailyTaskCompletion : toggleWeeklyTaskCompletion;
   const completedTaskCount = currentTasks.filter((task) => task.completed).length;
   const currentRecommendations = recommendationView === 'daily' ? dailyRecommendations : weeklyRecommendations;
 
   return (
     <div className="checklist-container">
-      {/* Main toggle between Goals and Recommendations */}
       <div className="section-toggle-container">
         <button 
           className={`section-toggle-btn ${activeSection === 'goals' ? 'section-active' : ''}`}
@@ -315,22 +352,22 @@ const DashboardChecklist = () => {
           <ul className="task-list">
             {currentTasks.map((task) => (
               <li 
-                key={task.id} 
-                className={`task-item ${highlightedItem === task.id ? 'task-highlighted' : ''}`}
-                onClick={() => handleItemClick(task.id)}
+                key={task.key} 
+                className={`task-item ${highlightedItem === task.key ? 'task-highlighted' : ''}`}
+                onClick={() => handleItemClick(task.key)}
               >
                 <div className="task-content">
                   <div 
                     className="custom-checkbox" 
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the li click event
-                      toggleTaskCompletion(task.id);
+                      e.stopPropagation(); 
+                      toggleTaskCompletion(task.key);
                     }}
                   >
               <input
                 type="checkbox"
                 checked={task.completed}
-                      onChange={() => {}} // Controlled component needs onChange
+                      onChange={() => {}} 
                       className="checkbox-input"
               />
                     <span className="checkmark"></span>
