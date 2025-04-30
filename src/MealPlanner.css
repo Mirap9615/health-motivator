@@ -7,6 +7,7 @@
 }
 
 /* Header styles */
+
 .meal-planner-header {
   text-align: center;
   margin-bottom: 30px;
@@ -14,13 +15,13 @@
 
 .meal-planner-header h1 {
   font-size: 2.5rem;
-  color: #eaeaea;
+  color: black;
   margin-bottom: 10px;
 }
 
 .meal-planner-header p {
   font-size: 1.1rem;
-  color: #aaaaaa;
+  color: black;
 }
 
 /* Notification styles */
@@ -940,19 +941,19 @@
 
 /* Meal Form Styles */
 .meal-form {
-  background-color: white;
+  background-color: rgba(33, 37, 41, 0.7);
   border-radius: 8px;
   padding: 15px;
   margin: 0 0 20px 0;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .meal-form h4 {
-  color: #333;
+  color: #eaeaea;
   margin: 0 0 15px 0;
   font-size: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
 }
 
@@ -976,28 +977,28 @@
 .form-group label {
   display: block;
   margin-bottom: 5px;
-  color: #333;
+  color: #eaeaea;
   font-size: 0.85rem;
 }
 
 .form-control {
   width: 100%;
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: rgba(52, 58, 64, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   padding: 8px 10px;
-  color: #333;
+  color: #eaeaea;
   font-size: 0.9rem;
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: #6610f2;
+  box-shadow: 0 0 0 2px rgba(102, 16, 242, 0.25);
 }
 
 .form-control::placeholder {
-  color: #999;
+  color: #aaaaaa;
 }
 
 .add-meal-button {

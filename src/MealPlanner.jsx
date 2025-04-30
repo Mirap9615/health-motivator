@@ -6,6 +6,7 @@ import SideBar from './SideBar.jsx';
 import QuickChart from 'quickchart-js';
 import { useLocation } from 'react-router-dom';
 import './MealPlanner.css';
+import PastDietSummaryTemplate from './PastDietSummaryTemplate.jsx';
 
 const MealPlanner = () => {
   const location = useLocation();
@@ -539,7 +540,7 @@ const MealPlanner = () => {
             </div>
             
             {/* AI Suggested Meals display - replaces the chart when available */}
-            {aiSuggestedMeals ? (
+            {aiSuggestedMeals && (
               <div className="ai-meal-suggestions">
                 <div className="ai-suggestions-header">
                   <h3>AI Suggested Meals</h3>
@@ -592,76 +593,6 @@ const MealPlanner = () => {
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            ) : (
-              <div className="nutrition-form">
-                <h3>Nutrition Information</h3>
-                
-                <div className="nutrition-form-content">
-                  <div className="nutrition-summary">
-                    <div className="nutrition-total-item">
-                      <span className="nutrition-label">Total Calories</span>
-                      <span className="nutrition-value calories">{Math.round(totalMacros.calories)}</span>
-                    </div>
-                    
-                    <div className="nutrition-breakdown">
-                      <div className="nutrition-item protein">
-                        <div className="nutrition-bar" style={{ width: `${Math.min(100, (totalMacros.protein * 4 / totalMacros.calories) * 100)}%` }}></div>
-                        <div className="nutrition-details">
-                          <span className="nutrition-label">Protein</span>
-                          <span className="nutrition-value">{Math.round(totalMacros.protein)}g</span>
-                          <span className="nutrition-percentage">
-                            {totalMacros.calories ? Math.round((totalMacros.protein * 4 / totalMacros.calories) * 100) : 0}%
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="nutrition-item carbs">
-                        <div className="nutrition-bar" style={{ width: `${Math.min(100, (totalMacros.carbs * 4 / totalMacros.calories) * 100)}%` }}></div>
-                        <div className="nutrition-details">
-                          <span className="nutrition-label">Carbs</span>
-                          <span className="nutrition-value">{Math.round(totalMacros.carbs)}g</span>
-                          <span className="nutrition-percentage">
-                            {totalMacros.calories ? Math.round((totalMacros.carbs * 4 / totalMacros.calories) * 100) : 0}%
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="nutrition-item fats">
-                        <div className="nutrition-bar" style={{ width: `${Math.min(100, (totalMacros.fats * 9 / totalMacros.calories) * 100)}%` }}></div>
-                        <div className="nutrition-details">
-                          <span className="nutrition-label">Fats</span>
-                          <span className="nutrition-value">{Math.round(totalMacros.fats)}g</span>
-                          <span className="nutrition-percentage">
-                            {totalMacros.calories ? Math.round((totalMacros.fats * 9 / totalMacros.calories) * 100) : 0}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="nutrition-sources">
-                    {pastDietLogs.length > 0 && (
-                      <div className="source-item past">
-                        <h4>Consumed Today</h4>
-                        <p>Calories: {Math.round(pastMacros.calories)}</p>
-                        <p>Protein: {Math.round(pastMacros.protein)}g</p>
-                        <p>Carbs: {Math.round(pastMacros.carbs)}g</p>
-                        <p>Fats: {Math.round(pastMacros.fats)}g</p>
-                      </div>
-                    )}
-                    
-                    {Object.values(futureMealPlan).some(meal => meal) && (
-                      <div className="source-item future">
-                        <h4>Planned Meals</h4>
-                        <p>Calories: {Math.round(futureMacros.calories)}</p>
-                        <p>Protein: {Math.round(futureMacros.protein)}g</p>
-                        <p>Carbs: {Math.round(futureMacros.carbs)}g</p>
-                        <p>Fats: {Math.round(futureMacros.fats)}g</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             )}
@@ -727,13 +658,7 @@ const MealPlanner = () => {
                       </button>
                       
                       {showSummary && (
-                        <div className="past-diet-summary">
-                          <h4>Past Diet Summary</h4>
-                          <p>Calories: {Math.round(pastMacros.calories)}</p>
-                          <p>Protein: {Math.round(pastMacros.protein)}g</p>
-                          <p>Carbs: {Math.round(pastMacros.carbs)}g</p>
-                          <p>Fats: {Math.round(pastMacros.fats)}g</p>
-                        </div>
+                        <PastDietSummaryTemplate pastMacros={pastDietLogs} />
                       )}
                     </div>
                   ) : (

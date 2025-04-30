@@ -28,6 +28,8 @@ const DashboardChecklist = () => {
   const [highlightedItem, setHighlightedItem] = useState(null);
   const [isLoadingGoals, setIsLoadingGoals] = useState(true);
   const [goalError, setGoalError] = useState(null);
+  const [loadingGoalSuggestion, setLoadingGoalSuggestion] = useState(false);
+  const [workoutSuggestion, setWorkoutSuggestion] = useState('');
   
   // Recommendations section state
   const [recommendationView, setRecommendationView] = useState('daily');
@@ -212,15 +214,31 @@ const DashboardChecklist = () => {
     setHighlightedRecommendation(highlightedRecommendation === index ? null : index);
   };
 
-  const handleAISuggestion = () => {
+  const handleAISuggestion = async () => {
     if (highlightedItem === null) return;
     
     // Get the highlighted task
-    const task = currentTasks.find(task => task.id === highlightedItem);
+    const task = currentTasks.find(task => task.key === highlightedItem);
+    if (!task) return;
     
-    console.log('Generating AI suggestion for task:', task.text);
-    // Here you would call your AI service to get suggestions
-    // For now, just log the task
+    setLoadingGoalSuggestion(true);
+    setWorkoutSuggestion('');
+    
+    try {
+      // Generate a workout suggestion using the API
+      const workoutPrompt = generateWorkoutPrompt(40, 'moderate');
+      const workoutResult = await generateAIResponse(workoutPrompt, {
+        temperature: 0.7,
+        maxTokens: 350
+      });
+      
+      setWorkoutSuggestion(workoutResult.response);
+    } catch (error) {
+      console.error('Error generating workout suggestion:', error);
+      setWorkoutSuggestion('Failed to generate workout suggestion. Please try again.');
+    } finally {
+      setLoadingGoalSuggestion(false);
+    }
   };
   
   const handleRecommendationAISuggestion = async () => {
@@ -364,33 +382,43 @@ const DashboardChecklist = () => {
                       toggleTaskCompletion(task.key);
                     }}
                   >
-              <input
-                type="checkbox"
-                checked={task.completed}
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
                       onChange={() => {}} 
                       className="checkbox-input"
-              />
+                    />
                     <span className="checkmark"></span>
                   </div>
                   <span className="task-text">
-                {task.text}
-              </span>
+                    {task.text}
+                  </span>
                 </div>
-          </li>
-        ))}
-      </ul>
+              </li>
+            ))}
+          </ul>
           <p className="task-summary">
             Completed tasks: {completedTaskCount} / {currentTasks.length}
           </p>
 
           {/* AI Suggestion Button - only appears when an item is highlighted */}
           {highlightedItem !== null && (
-            <button 
-              className="ai-suggestion-button"
-              onClick={handleAISuggestion}
-            >
-              Regenerate
-            </button>
+            <>
+              <button 
+                className="ai-suggestion-button"
+                onClick={handleAISuggestion}
+                disabled={loadingGoalSuggestion}
+              >
+                {loadingGoalSuggestion ? "Generating..." : "Generate Workout"}
+              </button>
+              
+              {workoutSuggestion && (
+                <div className="workout-suggestion">
+                  <h4>Suggested Workout:</h4>
+                  <p>{workoutSuggestion}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

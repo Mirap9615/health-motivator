@@ -294,4 +294,27 @@
   margin-bottom: 5px;
   color: #333;
   font-size: 0.85rem;
+}
+
+/* Workout suggestion */
+.workout-suggestion {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  border-radius: 4px;
+  border-left: 3px solid #2196F3;
+  animation: fadeIn 0.3s ease-in;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.workout-suggestion h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.workout-suggestion p {
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
 } 
