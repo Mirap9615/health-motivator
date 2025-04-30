@@ -1,4 +1,3 @@
-/* About page container */
 .about-container {
   width: 100%;
   max-width: 1200px;
@@ -9,7 +8,6 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Hero section */
 .about-hero {
   position: relative;
   background: linear-gradient(135deg, #4a4a4a, #333333);

@@ -423,7 +423,6 @@ const DashboardChecklist = () => {
         </div>
       )}
 
-      {/* Recommendations Section */}
       {activeSection === 'recommendations' && (
         <div className="recommendations-section">
           <div className="tab-container">

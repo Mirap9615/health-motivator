@@ -280,7 +280,7 @@ function DashboardExerciseScore() {
             </div>
 
             <div className="exercise-breakdown-bars" style={{ marginTop: '20px', width: '80%', marginLeft: 'auto', marginRight: 'auto' }}>
-                {/* Minutes Section */}
+                {/* Minutes */}
                 {scoreBreakdown.minutes && (
                     <div style={{ marginBottom: '24px' }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Minutes</div>
@@ -300,7 +300,7 @@ function DashboardExerciseScore() {
                     </div>
                 )}
 
-                {/* Calories Section */}
+                {/* Calories */}
                 {scoreBreakdown.calories && (
                     <div style={{ marginBottom: '24px' }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Calories</div>
@@ -320,7 +320,7 @@ function DashboardExerciseScore() {
                     </div>
                 )}
 
-                {/* Steps Section */}
+                {/* Steps */}
                 {scoreBreakdown.steps?.included && (
                     <div style={{ marginBottom: '24px' }}>
                     <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Steps</div>

@@ -23,7 +23,6 @@
   margin: 0 auto;
 }
 
-/* Selection cards */
 .import-selection {
     display: flex;
     justify-content: center;
@@ -81,7 +80,6 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232ecc71'%3E%3Cpath d='M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z'/%3E%3C/svg%3E");
 }
 
-/* Form container */
 .import-form-container {
   background: white;
   border-radius: 12px;
@@ -216,7 +214,6 @@
   background-color: #e9ecef;
 }
 
-/* Notification styles */
 .notification {
   padding: 12px 20px;
   border-radius: 4px;
@@ -243,7 +240,6 @@
   100% { opacity: 0; }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .import-selection {
     flex-direction: column;
@@ -261,7 +257,6 @@
   }
 }
 
-/* Save meal button */
 .save-meal-action {
   margin-top: 20px;
   display: flex;
@@ -291,7 +286,6 @@
   opacity: 0.7;
 }
 
-/* Updated Saved meals section */
 .saved-meals-section {
   margin-top: 30px;
   border-top: 1px solid #eee;
@@ -317,7 +311,6 @@
   border-radius: 2px;
 }
 
-/* Scrollable container */
 .saved-meals-scroll-container {
   position: relative;
   overflow-x: auto;
@@ -456,7 +449,6 @@
   box-shadow: 0 4px 8px rgba(0, 105, 217, 0.2);
 }
 
-/* For mobile devices */
 @media (max-width: 768px) {
   .saved-meals-list {
     flex-wrap: nowrap;
@@ -470,7 +462,6 @@
   }
 }
 
-/* Saved meals header with filters */
 .saved-meals-header {
   display: flex;
   flex-direction: column;
@@ -506,7 +497,6 @@
   border-color: #007bff;
 }
 
-/* Meal type badges with specific colors */
 .meal-type-badge.breakfast {
   background-color: #ffe8cc;
   color: #d35400;
@@ -527,7 +517,6 @@
   color: #c2185b;
 }
 
-/* No meals message */
 .no-meals-message {
   width: 100%;
   text-align: center;

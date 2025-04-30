@@ -536,7 +536,6 @@ const AiChat = () => {
               <div className="message-bubble">
                 {message.content}
                 
-                {/* Display nutrition info if available for diet messages */}
                 {message.role === 'assistant' && message.isDietRelated && macroInfo[message.id] && (
                   <div className="nutrition-display">
                     <hr />
@@ -544,7 +543,6 @@ const AiChat = () => {
                   </div>
                 )}
                 
-                {/* Display meal planner info if available */}
                 {message.role === 'assistant' && message.isMealPlannerRelated && plannerInfo[message.id] && (
                   <div className="nutrition-display planner-display">
                     <hr />
@@ -553,7 +551,6 @@ const AiChat = () => {
                 )}
               </div>
               
-              {/* Add to Diet button below the message bubble */}
               {message.role === 'assistant' && message.isDietRelated && (
                 <div className="message-actions-below">
                   <button 
@@ -565,7 +562,6 @@ const AiChat = () => {
                 </div>
               )}
               
-              {/* Add to Planner button below the message bubble */}
               {message.role === 'assistant' && message.isMealPlannerRelated && (
                 <div className="message-actions-below">
                   <button 
@@ -579,7 +575,6 @@ const AiChat = () => {
             </div>
           ))}
           
-          {/* Show thinking indicator within the chat when loading */}
           {loading && (
             <div className="chat-message assistant">
               <div className="message-bubble thinking">

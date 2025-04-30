@@ -14,7 +14,6 @@ import MealPlanner from './MealPlanner.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import checkAuth from './CheckAuth.jsx';
 
-// Style for loading container
 const loadingStyle = {
     display: 'flex',
     justifyContent: 'center',
@@ -24,7 +23,6 @@ const loadingStyle = {
     backgroundColor: '#f5f5f5'
 };
 
-// Custom layout component that handles auth
 function AuthenticatedLayout() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -48,24 +46,22 @@ function AuthenticatedLayout() {
         }
     }
 
-    // Check auth on mount and location changes
     useEffect(() => {
         verifyAuth();
     }, [location.pathname]);
     
-    // Show loading state while checking authentication
     if (isLoading) {
         return <div style={loadingStyle}><LoadingSpinner /></div>;
     }
     
     return (
         <Routes>
-            {/* Public routes - accessible to everyone */}
+            {/* Public routes */}
             <Route path="/about" element={<About />} />
             <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
             <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Register />} />
             
-            {/* Protected routes - only accessible if authenticated */}
+            {/* Protected routes */}
             <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/about" />} />
             <Route path="/import" element={isAuthenticated ? <Import /> : <Navigate to="/about" />} />
             <Route path="/fitness" element={isAuthenticated ? <Fitness /> : <Navigate to="/about" />} />

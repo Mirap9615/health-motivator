@@ -16,7 +16,6 @@
     overflow: hidden;
   }
   
-  /* Tab Navigation */
   .profile-tabs {
     display: flex;
     background-color: #f9f9f9;
@@ -54,7 +53,6 @@
     padding: 20px;
   }
   
-  /* Profile Header with Avatar */
   .profile-header {
     display: flex;
     align-items: center;
@@ -112,7 +110,6 @@
     margin: 0;
   }
   
-  /* Stats Cards */
   .profile-stats {
     display: flex;
     gap: 20px;
@@ -154,7 +151,6 @@
     color: #333;
   }
   
-  /* Profile Card */
   .profile-title {
     font-size: 24px;
     font-weight: bold;

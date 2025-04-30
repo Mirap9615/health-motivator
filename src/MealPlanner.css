@@ -433,7 +433,6 @@
   font-size: 0.9rem;
 }
 
-/* Empty state messages */
 .empty-section-message {
   background-color: rgba(33, 37, 41, 0.5);
   border-radius: 8px;
@@ -463,7 +462,6 @@
   margin-top: 20px;
 }
 
-/* Loading spinner */
 .loading-spinner {
   display: flex;
   justify-content: center;
@@ -472,7 +470,6 @@
   color: #eaeaea;
 }
 
-/* Meal plan section */
 .meal-plan-section {
   flex: 1.2;
   min-width: 300px;
@@ -488,7 +485,6 @@
   text-align: center;
 }
 
-/* AI Suggestion Panel */
 .ai-suggestion-panel {
   background-color: rgba(33, 37, 41, 0.85);
   border-radius: 8px;
@@ -554,7 +550,6 @@
   margin: 0 0 10px 0;
 }
 
-/* Future date indicator */
 .future-date-indicator {
   background-color: rgba(102, 16, 242, 0.15);
   color: #6610f2;
@@ -573,12 +568,10 @@
   font-weight: bold;
 }
 
-/* For future dates, make the meal plan section take full width */
 .future-date-full-width {
   width: 100%;
 }
 
-/* Media queries for responsive design */
 @media (max-width: 768px) {
   .meal-planner-content {
     flex-direction: column;
@@ -599,7 +592,6 @@
   }
 }
 
-/* Toggle button for summary */
 .summary-toggle-button {
   background-color: rgba(40, 167, 69, 0.2);
   border: 1px solid #28a745;
@@ -638,7 +630,6 @@
   transform: rotate(180deg);
 }
 
-/* Responsive layout for smaller screens */
 @media (max-width: 576px) {
   .past-meal {
     grid-template-columns: 1fr;
@@ -660,7 +651,6 @@
   font-weight: normal;
 }
 
-/* AI Meal Suggestions */
 .ai-meal-suggestions {
   background-color: rgba(33, 37, 41, 0.7);
   border-radius: 8px;
@@ -802,7 +792,6 @@
   border-left: 3px solid #dc3545 !important;
 }
 
-/* Nutrition Form Styles */
 .nutrition-form {
   background-color: rgba(33, 37, 41, 0.7);
   border-radius: 8px;
@@ -939,7 +928,6 @@
   border-left: 3px solid #6610f2;
 }
 
-/* Meal Form Styles */
 .meal-form {
   background-color: rgba(33, 37, 41, 0.7);
   border-radius: 8px;
@@ -1023,7 +1011,6 @@
   transform: translateY(0);
 }
 
-/* Responsive styles for the form */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;

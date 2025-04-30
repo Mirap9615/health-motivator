@@ -1,4 +1,3 @@
-/* Register page container */
 .register-page {
   display: flex;
   justify-content: center;
@@ -8,7 +7,6 @@
   padding: 20px;
 }
 
-/* Register form container */
 .register-container {
   width: 100%;
   max-width: 420px;
@@ -24,7 +22,6 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Header styles */
 .register-header {
   text-align: center;
   margin-bottom: 24px;
@@ -84,7 +81,6 @@
   color: #adb5bd;
 }
 
-/* Button styles */
 .register-button, .login-button {
   width: 100%;
   padding: 14px;
@@ -119,7 +115,6 @@
   color: #212529;
 }
 
-/* Divider */
 .auth-divider {
   position: relative;
   text-align: center;
@@ -146,7 +141,6 @@
   font-size: 0.9rem;
 }
 
-/* Error message */
 .error-message {
   display: flex;
   align-items: center;
@@ -173,7 +167,6 @@
   font-weight: bold;
 }
 
-/* Responsive styles */
 @media (max-width: 768px) {
   .register-container {
     padding: 24px;

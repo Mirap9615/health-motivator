@@ -151,7 +151,7 @@
 .macro-item {
   text-align: left;
   margin: 4px 0;
-  /* Color is set by inline style in DashboardPie.jsx */
+  /* color is set by inline style in DashboardPie.jsx */
 }
 
 .macro-calories {
