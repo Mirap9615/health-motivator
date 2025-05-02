@@ -311,7 +311,7 @@ const Dashboard = () => {
                             chartData={dietChartData} />
                     </div>
                     <div className="right cell">
-                        <DashboardChecklist />
+                        <DashboardChecklist healthScore={healthScore} />
                     </div>
                 </div>
             </div>

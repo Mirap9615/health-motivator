@@ -22,7 +22,7 @@ const initialRecommendationState = Object.fromEntries(
   }])
 );
 
-const DashboardChecklist = () => {
+const DashboardChecklist = ({ healthScore = 50 }) => {
   const [activeSection, setActiveSection] = useState('goals');
   const [userProfile, setUserProfile] = useState(null);
   const [userGoals, setUserGoals] = useState(null);
@@ -222,9 +222,41 @@ const DashboardChecklist = () => {
     setChecklistError(null);
 
     try {
-      const profileContext = userProfile ? `Consider my profile: Age ${userProfile.age}, Activity Level ${userProfile.activity_level}.` : "";
-      const prompt = `Give me a short, actionable tip or motivation related to the goal: "${task.text}". ${profileContext} Keep it concise (1-2 simple sentences). ${SIMPLE_STYLE_INSTRUCTION}`;
-      const result = await generateAIResponse(prompt, { temperature: 0.75, maxTokens: 100 });
+      // Determine the focus area based on task text
+      const taskText = task.text.toLowerCase();
+      let focusArea = "general health";
+      
+      if (taskText.includes("sleep") || taskText.includes("rest") || taskText.includes("bed")) {
+        focusArea = "sleep";
+      } else if (taskText.includes("eat") || taskText.includes("food") || taskText.includes("diet") || 
+                taskText.includes("meal") || taskText.includes("nutrition")) {
+        focusArea = "diet";
+      } else if (taskText.includes("exercise") || taskText.includes("workout") || taskText.includes("run") || 
+                taskText.includes("gym") || taskText.includes("walk") || taskText.includes("activity")) {
+        focusArea = "exercise";
+      }
+      
+      // Determine health status based on score
+      let healthStatus = "average";
+      if (healthScore >= 80) {
+        healthStatus = "excellent";
+      } else if (healthScore >= 65) {
+        healthStatus = "good";
+      } else if (healthScore <= 40) {
+        healthStatus = "needs improvement";
+      }
+      
+      const profileContext = userProfile 
+        ? `Consider my profile: Age ${userProfile.age}, Activity Level ${userProfile.activity_level}. My current health score is ${healthScore}/100 (${healthStatus}).` 
+        : `My current health score is ${healthScore}/100 (${healthStatus}).`;
+      
+      const periodContext = goalView === 'daily' ? 'today' : 'this week';
+      
+      // Create a more focused prompt
+      const prompt = `Give me a specific, actionable ${focusArea} tip related to my goal: "${task.text}" for ${periodContext}. ${profileContext} 
+      Keep it extremely brief (max 1-2 sentences, under 25 words total). Focus only on ${focusArea} advice. Make sure the user understands EXACTLY what I am talking about.`;
+      
+      const result = await generateAIResponse(prompt, { temperature: 0.7, maxTokens: 75 });
 
       if (!result?.response) throw new Error("No response from AI for goal suggestion.");
 
@@ -236,7 +268,7 @@ const DashboardChecklist = () => {
     } finally {
       setLoadingGoalAISuggestion(false);
     }
-  }, [highlightedGoalKey, goalView, dailyTasks, weeklyTasks, userProfile]);
+  }, [highlightedGoalKey, goalView, dailyTasks, weeklyTasks, userProfile, healthScore]);
 
   const handleRecItemClick = (recType) => {
     setHighlightedRecType(prev => (prev === recType ? null : recType));

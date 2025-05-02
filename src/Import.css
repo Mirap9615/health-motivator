@@ -82,6 +82,7 @@
 
 .import-form-container {
   background: white;
+  color: black;
   border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   margin: 20px auto;
@@ -104,6 +105,21 @@
   color: #333;
 }
 
+.import-form-container .import-form label,
+.import-form-container .import-form input{
+  color: black;
+}
+.import-form-container .import-form input,
+.import-form-container .import-form select {
+  background-color: white;
+  border: 1px solid #000000;
+  color: black;
+}
+.import-form-container .import-form option{
+  color: black;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
 .close-button {
   background: none;
   border: none;
