@@ -1,185 +1,115 @@
 import { generateAIResponse } from './aiServices';
 
-/**
- * Classify a user prompt as diet-related, meal-planner-related, or other
- * @param {string} userPrompt - The user's message
- * @returns {Promise<string>} - Classification result: "diet", "meal-planner", or "other"
- */
+const SIMPLE_STYLE_INSTRUCTION = "Use simple sentences. Avoid complex formatting like nested lists or excessive symbols/parentheses unless necessary for clarity (like in workout steps).";
+const TITLE_SEPARATOR = "|||"; 
+
+
 export const classifyUserPrompt = async (userPrompt) => {
-  const classificationPrompt = `
-  CLASSIFICATION TASK ONLY.
-  
-  You are a health assistant specialized in nutrition and fitness. Your task is to classify if the user's message is about:
-  
-  1. Diet (food nutrition, calories, macros like protein, carbs or fats, specific foods, meals, recipes, dietary plans) - respond with EXACTLY "diet"
-  
-  2. Meal planning (weekly meal plans, meal scheduling, meal prep, organizing meals for specific days) - respond with EXACTLY "meal-planner"
-  
-  3. Any other topic - respond with EXACTLY "other"
-  
-  DO NOT respond to the user query directly. Your response must be EXACTLY one word: "diet", "meal-planner", or "other".
-  
-  User query: "${userPrompt}"
-  `;
-
-  try {
-    const result = await generateAIResponse(classificationPrompt, {
-      temperature: 0.1, // Low temperature for more deterministic responses
-      maxTokens: 10 // Very small token limit since we only need one word
-    });
-    
-    if (!result || !result.response) {
-      throw new Error('Failed to classify user prompt');
+    const classificationPrompt = `CLASSIFICATION TASK ONLY...\nUser query: "${userPrompt}"`;
+    try {
+        const result = await generateAIResponse(classificationPrompt, { temperature: 0.1, maxTokens: 10 });
+        if (!result?.response) throw new Error('Failed to classify');
+        const classification = result.response.trim().toLowerCase();
+        if (['diet', 'meal-planner', 'other'].includes(classification)) return classification;
+        console.warn('Unexpected classification result:', classification);
+        return 'other';
+    } catch (error) {
+        console.error('Error classifying user prompt:', error);
+        return 'other';
     }
-    
-    const classification = result.response.trim().toLowerCase();
-    
-    // Validate the classification
-    if (classification === 'diet' || classification === 'meal-planner' || classification === 'other') {
-      return classification;
-    } else {
-      console.warn('Unexpected classification result:', classification);
-      return 'other'; // Default to other for unexpected responses
-    }
-  } catch (error) {
-    console.error('Error classifying user prompt:', error);
-    return 'other'; // Default to other on error
-  }
 };
 
-// Function to extract macro information from AI response
 export const extractMacroInfo = async (userQuery, aiResponse) => {
-  try {
-    const extractionPrompt = `
-      Based on this conversation about food:
-      
-      User query: "${userQuery}"
-      Your response: "${aiResponse}"
-      
-      Extract the nutritional information and provide ONLY a JSON object with these fields:
-      {
-        "meal_name": "name of the food/meal",
-        "calories": estimated calories (number only),
-        "protein_g": estimated protein in grams (number only),
-        "carbs_g": estimated carbs in grams (number only),
-        "fats_g": estimated fats in grams (number only)
-      }
-      
-      Be accurate with your nutritional estimates. Research standard nutritional values for the foods mentioned.
-      For multiple food items, calculate the total nutritional value that MATCHES THE JSON OBJECT for the nutritional information.
-      Return ONLY the JSON with no other text.
-    `;
-    
-    const result = await generateAIResponse(extractionPrompt, {
-      temperature: 0.3,
-      maxTokens: 200
-    });
-    
-    // Extract JSON from the response
-    const jsonStart = result.response.indexOf('{');
-    const jsonEnd = result.response.lastIndexOf('}') + 1;
-    
-    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-      const jsonString = result.response.substring(jsonStart, jsonEnd);
-      return JSON.parse(jsonString);
+    const extractionPrompt = `Based on this conversation...\nUser query: "${userQuery}"\nYour response: "${aiResponse}"\nExtract ONLY a JSON...`;
+    try {
+        const result = await generateAIResponse(extractionPrompt, { temperature: 0.3, maxTokens: 200 });
+        const jsonMatch = result.response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) return JSON.parse(jsonMatch[0]);
+        return null;
+    } catch (error) {
+        console.error('Error extracting macro info:', error);
+        return null;
     }
-    
-    return null;
-  } catch (error) {
-    console.error('Error extracting macro info:', error);
-    return null;
-  }
 };
 
-// Function to extract meal plan information from AI response (with 3 meal options)
 export const extractMealPlannerInfo = async (userQuery, aiResponse) => {
-  try {
-    const extractionPrompt = `
-      Based on this conversation about meal planning:
-      
-      User query: "${userQuery}"
-      Your response: "${aiResponse}"
-      
-      Extract THREE different meal options mentioned or implied in the conversation.
-      For each meal, provide estimated nutritional information.
-      
-      Return ONLY a JSON object with this structure:
-      {
-        "plan_title": "Brief title for this meal plan",
-        "meals": [
-          {
-            "meal_name": "First meal name",
-            "calories": estimated calories (number only),
-            "protein_g": estimated protein in grams (number only),
-            "carbs_g": estimated carbs in grams (number only),
-            "fats_g": estimated fats in grams (number only)
-          },
-          {
-            "meal_name": "Second meal name",
-            "calories": estimated calories (number only),
-            "protein_g": estimated protein in grams (number only),
-            "carbs_g": estimated carbs in grams (number only),
-            "fats_g": estimated fats in grams (number only)
-          },
-          {
-            "meal_name": "Third meal name",
-            "calories": estimated calories (number only),
-            "protein_g": estimated protein in grams (number only),
-            "carbs_g": estimated carbs in grams (number only),
-            "fats_g": estimated fats in grams (number only)
-          }
-        ]
-      }
-      
-      If THREE meals aren't directly mentioned, suggest appropriate ones that would fit with the meal plan discussion.
-      Be accurate with your nutritional estimates based on standard nutritional values.
-      Return ONLY the JSON with no other text.
-    `;
-    
-    const result = await generateAIResponse(extractionPrompt, {
-      temperature: 0.3,
-      maxTokens: 600 // Increased token limit for 3 meal options
-    });
-    
-    // Extract JSON from the response
-    const jsonStart = result.response.indexOf('{');
-    const jsonEnd = result.response.lastIndexOf('}') + 1;
-    
-    if (jsonStart >= 0 && jsonEnd > jsonStart) {
-      const jsonString = result.response.substring(jsonStart, jsonEnd);
-      return JSON.parse(jsonString);
+     const extractionPrompt = `Based on this conversation...\nUser query: "${userQuery}"\nYour response: "${aiResponse}"\nExtract THREE meal options... Return ONLY a JSON object...`;
+    try {
+        const result = await generateAIResponse(extractionPrompt, { temperature: 0.3, maxTokens: 600 });
+        const jsonMatch = result.response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) return JSON.parse(jsonMatch[0]);
+        return null;
+    } catch (error) {
+        console.error('Error extracting meal planner info:', error);
+        return null;
     }
-    
-    return null;
-  } catch (error) {
-    console.error('Error extracting meal planner info:', error);
-    return null;
+};
+
+export const generateWorkoutPrompt = (
+    duration = 30, intensity = "moderate", period = "daily", userProfile = null, context = "workout suggestion"
+) => {
+  let request = "";
+  let personalization = "";
+  let durationText = "";
+  const titleContext = period === 'daily' ? `Today's ${intensity} Workout` : `Weekly ${intensity} Plan`;
+
+  if (period === 'daily') {
+      request = `Suggest a specific ${intensity} intensity workout session for today, approx ${duration} minutes.`;
+      durationText = `${duration} minutes`;
+  } else {
+      request = `Suggest a balanced weekly workout schedule/plan, aiming for ~${duration} total minutes of ${intensity} activity. Include exercise variety.`;
+      durationText = `total ${duration} minutes weekly`;
   }
+  if (userProfile) { 
+        personalization += ` Tailor it for someone aged ${userProfile.age || 'an adult'}, activity level "${userProfile.activity_level || 'moderate'}".`;
+  }
+  if (context.includes("alternative")) { request = `Suggest an ALTERNATIVE to a previous workout. ${request}`; }
+
+  return `Provide a short title (5-10 words) for this ${context}. Then, on a new line using the separator "${TITLE_SEPARATOR}", provide the detailed workout description. ${request}${personalization} Include exercises, structure (sets/reps/time), and a rough calorie estimate for the ${durationText}. ${SIMPLE_STYLE_INSTRUCTION}`;
 };
 
-// Generate workout suggestion prompt
-export const generateWorkoutPrompt = (duration = "30", intensity = "moderate") => {
-  return `Suggest a ${intensity} intensity workout that takes ${duration} minutes without equipment. 
-  Make it brief and structured with exercises, sets, reps, and estimated calories burned. IT SHOULD BE LESS THAN 12 WORDS. AND THE RESPONSE SHOULD ONLY CONTAIN NUMBERS OR WORDS.`;
+export const generateHealthTipsPrompt = (
+    userProfile = null, period = "daily", userGoals = null, context = "health tip"
+) => {
+  let request = "";
+  let personalization = "";
+  const titleContext = period === 'daily' ? `Daily Health Tip` : `Weekly Health Strategy`;
+
+  if (period === 'daily') { request = `Provide ONE brief, actionable health tip suitable for today.`; }
+  else { request = `Provide ONE broader health strategy or habit focus for this week.`; }
+
+  if (userProfile) { 
+        personalization = ` Personalize for age ${userProfile.age || 'N/A'}, activity level "${userProfile.activity_level || 'N/A'}"`;
+        if (userProfile.weight_kg && userProfile.height_cm) { const bmi = (userProfile.weight_kg / ((userProfile.height_cm / 100) ** 2)).toFixed(1); personalization += `, approx BMI ${bmi}`; } personalization += ".";
+  }
+  if (userGoals) { 
+        personalization += ` Goals: ~${userGoals.target_daily_steps || 'N/A'} steps/day, ${userGoals.target_sleep_hours || 'N/A'} hrs sleep, ${userGoals.target_water_intake || 'N/A'} glasses water, target ${userGoals.target_calorie_intake || 'N/A'} kcal/day.`;
+  }
+  if (context.includes("different") || context.includes("alternative")) { request = `Provide ONE DIFFERENT ${period === 'daily' ? 'tip' : 'strategy'}. ${request}`; }
+
+  return `Provide a short title (5-10 words) for this ${context}. Then, on a new line using the separator "${TITLE_SEPARATOR}", provide the detailed tip/strategy explanation. ${request}${personalization} Keep the explanation concise (1-3 simple sentences). ${SIMPLE_STYLE_INSTRUCTION}`;
 };
 
-// Generate health tips prompt
-export const generateHealthTipsPrompt = (userStats) => {
-  return `Based on these health stats: 
-    - Steps: ${userStats.steps || 0}
-    - Exercise duration: ${userStats.duration_min || 0} minutes
-    - Calories burned: ${userStats.calories_burned || 0} 
-    - Calories consumed: ${userStats.calories || 0} 
-    - Protein consumed: ${userStats.protein_g || 0}g
-    - Carbs consumed: ${userStats.carbs_g || 0}g
-    - Fats consumed: ${userStats.fats_g || 0}g
-    
-    Provide [ONLY ONE] brief, personalized health tips to improve fitness and diet. It should be less than 10 WORDS LONG.`;
-};
+export const generateMealPrompt = (
+    preferences = ['healthy'], userProfile = null, userGoals = null, period = "daily", restrictions = []
+) => {
+  let request = "";
+  let personalization = "";
+  const titleContext = period === 'daily' ? `Today's Meal/Snack Idea` : `Weekly Meal Ideas`;
+  const numSuggestions = period === 'daily' ? 1 : 2; 
 
-// Generate meal suggestion prompt
-export const generateMealPrompt = (preferences, restrictions = []) => {
-  return `Suggest [ONLY ONE] healthy meal OR snack that is ${preferences.join(', ')}${
-    restrictions.length ? ` and does not contain ${restrictions.join(', ')}` : ''
-  }. Include calories. IT SHOULD BE LESS THAN 12 WORDS.`;
-}; 
+  if (period === 'daily') { request = `Suggest ONE healthy meal OR snack for today based on preferences: ${preferences.join(', ')}.`; }
+  else { request = `Suggest ${numSuggestions} different healthy meal ideas suitable for planning this week, matching preferences: ${preferences.join(', ')}.`; }
+
+  if (userProfile?.activity_level) { 
+        personalization += ` Consider activity level: "${userProfile.activity_level}".`;
+  }
+  if (userGoals?.target_calorie_intake) { 
+       if (period === 'daily') { const targetMealCalories = Math.round(userGoals.target_calorie_intake / (preferences.includes('snack') ? 6 : 3.5)); personalization += ` Aim for ~${targetMealCalories} kcal.`; }
+       else { personalization += ` User target is ~${userGoals.target_calorie_intake} kcal/day.`; }
+  }
+  if (restrictions.length) { personalization += ` Avoid: ${restrictions.join(', ')}.`; }
+   if (preferences.includes('different')) { request = `Suggest ONE DIFFERENT healthy meal or snack (for ${period}) based on preferences: ${preferences.filter(p => p !== 'different').join(', ')}.`; }
+
+  return `Provide a short title (5-10 words) summarizing the suggestion(s). Then, on a new line using the separator "${TITLE_SEPARATOR}", provide the detailed meal description(s). ${request}${personalization} Include estimated calorie count(s). Keep descriptions brief. ${SIMPLE_STYLE_INSTRUCTION}`;
+};

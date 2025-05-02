@@ -1,9 +1,256 @@
 .checklist-container {
-  /* Main container styles */
   padding-top: 10px;
 }
 
-/* Main section toggle styles */
+.goals-section .task-list,
+.recommendation-button-list {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.goals-section .task-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 5px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.goals-section .task-item:last-child {
+  border-bottom: none;
+}
+
+.goals-section .task-item:hover,
+.goals-section .task-item.task-highlighted {
+  background-color: #f8f9fa;
+}
+
+.goals-section .task-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.goals-section .custom-checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.goals-section .checkbox-input {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+
+.goals-section .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.goals-section .custom-checkbox:hover .checkmark {
+  background-color: #ccc;
+}
+
+.goals-section .checkbox-input:checked + .checkmark {
+  background-color: #2196F3;
+}
+
+.goals-section .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.goals-section .checkbox-input:checked + .checkmark:after {
+  display: block;
+}
+
+.goals-section .task-text {
+  flex-grow: 1;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.goals-section .task-summary {
+  font-size: 0.9em;
+  color: #666;
+  text-align: right;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.goals-section .goal-actions {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.goals-section .ai-suggestion-button,
+.recommendation-actions .ai-suggestion-button {
+  display: block;
+  margin: 20px auto 10px;
+  padding: 10px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: fadeIn 0.3s ease-in;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.goals-section .ai-suggestion-button:hover,
+.recommendation-actions .ai-suggestion-button:hover {
+  background-color: #0d8bf0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+.goals-section .ai-suggestion-button:disabled,
+.recommendation-actions .ai-suggestion-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.goals-section .ai-suggestion-display {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #e9f5ff;
+  border-left: 3px solid #007bff;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #333;
+  animation: fadeIn 0.3s ease-in;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-button-item {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommendation-view-button {
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recommendation-view-button:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  border-color: #aaa;
+}
+
+.recommendation-view-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #f0f0f0;
+}
+
+.recommendation-button-item.loading .recommendation-view-button {
+  color: #888;
+}
+.recommendation-button-item.error .recommendation-view-button {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.recommendation-inline-actions {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  flex-shrink: 0;
+}
+
+.recommendation-inline-actions.visible {
+  opacity: 1;
+}
+
+.inline-action-button {
+  padding: 5px 8px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.inline-action-button.regenerate {
+  background-color: #e9f5ff;
+  border-color: #b3d7ff;
+  color: #0056b3;
+}
+.inline-action-button.regenerate:hover:not(:disabled) {
+  background-color: #cce5ff;
+}
+
+.inline-action-button.undo,
+.recommendation-actions .undo-button {
+  padding: 5px 8px; /* Make consistent with other inline */
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+  font-size: 0.8rem; /* Make consistent */
+  border-radius: 4px; /* Make consistent */
+  cursor: pointer;
+  border: 1px solid #dee2e6; /* Make consistent */
+  transition: all 0.2s ease;
+}
+.inline-action-button.undo:hover:not(:disabled),
+.recommendation-actions .undo-button:hover:not(:disabled) {
+  background-color: #e9ecef;
+}
+.inline-action-button:disabled,
+.recommendation-actions .undo-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #aaa;
+  box-shadow: none;
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
 .section-toggle-container {
   display: flex;
   width: 100%;
@@ -21,6 +268,7 @@
   text-align: center;
   border: none;
   background-color: #f0f0f0;
+  color: #333;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -34,14 +282,9 @@
   color: white;
 }
 
-.checklist-goals-title {
-    margin-top: 10px;
-}
-
 .tab-container {
   display: flex;
-  margin: 10px 0;
-  padding: 10px;
+  margin-bottom: 15px;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -51,137 +294,21 @@
   padding: 8px 12px;
   border: none;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .tab-active {
-  background-color: #444;
+  background-color: #555;
   color: white;
 }
 
 .tab-inactive {
   background-color: #ddd;
-  color: black;
+  color: #333;
 }
-
-.task-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-.task-item {
-  margin: 8px 0;
-  padding: 10px;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-}
-
-.task-item:hover {
-  background-color: #e9e9e9;
-}
-
-.task-highlighted {
-  background-color: #4d4d4d;
-  color: white;
-}
-
-.task-highlighted:hover {
-  background-color: #3d3d3d;
-}
-
-.task-content {
-  display: flex;
-  align-items: center;
-}
-
-/* custom checkbox - circular */
-.custom-checkbox {
-  position: relative;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.checkbox-input {
-  position: absolute;
-  opacity: 0;
-  height: 0;
-  width: 0;
-}
-
-.checkmark {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 20px;
-  width: 20px;
-  background-color: #eee;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.custom-checkbox:hover .checkmark {
-  background-color: #ccc;
-}
-
-.checkbox-input:checked + .checkmark {
-  background-color: #2196F3;
-}
-
-.checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-.checkbox-input:checked + .checkmark:after {
-  display: block;
-  left: 7px;
-  top: 3px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.task-text {
-  line-height: 1.4;
-  flex: 1;
-}
-
-.task-summary {
-  margin-top: 15px;
-  font-weight: bold;
-}
-
-.ai-suggestion-button {
-  display: block;
-  margin: 20px auto 10px;
-  padding: 10px 16px;
-  background-color: #2196F3;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  animation: fadeIn 0.3s ease-in;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.ai-suggestion-button:hover {
-  background-color: #0d8bf0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.ai-suggestion-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  box-shadow: none;
+.tab-inactive:hover {
+    background-color: #ccc;
 }
 
 .recommendation-actions {
@@ -192,72 +319,14 @@
   animation: fadeIn 0.3s ease-in;
 }
 
-.undo-button {
-  padding: 10px 16px;
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.undo-button:hover {
-  background-color: #e5e5e5;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.undo-button:disabled {
-  background-color: #f5f5f5;
-  color: #aaa;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Recommendations Section Styles */
-.recommendations-section {
-  animation: fadeIn 0.3s ease;
-}
-
+.recommendations-section,
 .goals-section {
   animation: fadeIn 0.3s ease;
-}
-
-.recommendation-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-.recommendation-item {
-  margin: 10px 0;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  border-left: 3px solid #444;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.recommendation-item:hover {
-  background-color: #e9e9e9;
-  border-left-color: #666;
-}
-
-.recommendation-highlighted {
-  background-color: #4d4d4d;
-  color: white;
-  border-left-color: #2196F3;
-}
-
-.recommendation-highlighted:hover {
-  background-color: #3d3d3d;
 }
 
 .form-control {
@@ -311,4 +380,4 @@
   margin: 0;
   color: #555;
   line-height: 1.5;
-} 
+}

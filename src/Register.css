@@ -4,7 +4,7 @@
   align-items: center;
   min-height: calc(100vh - 60px);
   background-color: rgb(240, 240, 240);
-  padding: 20px;
+  padding: 20px 10px;
 }
 
 .register-container {
@@ -20,6 +20,17 @@
 .register-container:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.register-container.multi-step {
+  max-width: 550px;
+  padding: 30px 40px;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  min-height: 550px;
+  display: flex;
+  flex-direction: column;
 }
 
 .register-header {
@@ -39,13 +50,22 @@
   font-size: 1rem;
 }
 
-/* Form styles */
 .register-form {
   margin-bottom: 25px;
 }
 
 .input-group {
   margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group.inline {
+  display: flex;
+  gap: 15px;
+}
+
+.input-group-half {
+  flex: 1;
 }
 
 .input-group label {
@@ -60,7 +80,12 @@
   position: relative;
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-group input[type="text"],
+.input-group input[type="email"],
+.input-group input[type="password"],
+.input-group input[type="number"],
+.input-group select {
   width: 100%;
   padding: 14px 16px;
   font-size: 1rem;
@@ -68,9 +93,12 @@
   border-radius: 8px;
   background-color: #f9fafc;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
-.input-wrapper input:focus {
+.input-wrapper input:focus,
+.input-group input:focus,
+.input-group select:focus {
   outline: none;
   border-color: #333333;
   background-color: #ffffff;
@@ -81,7 +109,7 @@
   color: #adb5bd;
 }
 
-.register-button, .login-button {
+.register-button {
   width: 100%;
   padding: 14px;
   border: none;
@@ -90,9 +118,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.register-button {
   background-color: #333333;
   color: white;
   margin-top: 10px;
@@ -106,13 +131,34 @@
 }
 
 .login-button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
   background-color: #e9ecef;
   color: #495057;
 }
 
-.login-button:hover {
+.login-button:hover:not(:disabled) {
   background-color: #dee2e6;
   color: #212529;
+}
+
+.login-redirect .login-button {
+    background-color: transparent;
+    color: #007bff;
+    border: 1px solid #007bff;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.login-redirect .login-button:hover:not(:disabled) {
+  background-color: #007bff;
+  color: white;
 }
 
 .auth-divider {
@@ -167,11 +213,167 @@
   font-weight: bold;
 }
 
+.error-step {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.error-field {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+
+.progress-bar-container {
+  width: 80%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin: 0 auto 30px auto;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.4s ease-in-out;
+}
+
+.step-indicators {
+  position: absolute;
+  top: -10px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2%;
+}
+
+.step-indicators span {
+  width: 24px;
+  height: 24px;
+  background-color: #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  transition: background-color 0.4s ease;
+  z-index: 1;
+}
+
+.step-indicators span:nth-child(2) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.step-indicators span:nth-child(3) {
+  margin-left: auto;
+}
+
+.step-indicators span.active {
+  background-color: #007bff;
+}
+
+.register-container.multi-step .register-form {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0; 
+}
+
+.form-step {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+  transform: translateX(100%);
+  visibility: hidden;
+  padding-bottom: 60px;
+}
+
+.form-step.active {
+  opacity: 1;
+  position: relative;
+  transform: translateX(0);
+  visibility: visible;
+  z-index: 1;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.navigation-buttons button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.navigation-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prev-button {
+  background-color: #6c757d;
+  color: white;
+}
+
+.prev-button:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.next-button, .finish-button, .dashboard-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.next-button:hover:not(:disabled),
+.finish-button:hover:not(:disabled),
+.dashboard-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.confirmation-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.confirmation-step h2 {
+  color: #28a745;
+  margin-bottom: 15px;
+}
+
 @media (max-width: 768px) {
-  .register-container {
+  .register-container,
+  .register-container.multi-step {
     padding: 24px;
   }
-  
+
   .register-header h2 {
     font-size: 1.8rem;
   }
@@ -180,18 +382,25 @@
 @media (max-width: 480px) {
   .register-page {
     padding: 10px;
+    align-items: flex-start; 
   }
-  
-  .register-container {
+
+  .register-container,
+  .register-container.multi-step {
     padding: 20px;
+    min-height: auto;
   }
-  
+
   .register-header h2 {
     font-size: 1.6rem;
   }
-  
-  .input-wrapper input {
+
+  .input-wrapper input,
+  .input-group input[type="text"],
+  .input-group input[type="email"],
+  .input-group input[type="password"],
+  .input-group input[type="number"],
+  .input-group select {
     padding: 12px 14px;
   }
 }
-  

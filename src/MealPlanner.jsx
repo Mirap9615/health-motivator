@@ -34,60 +34,46 @@ const MealPlanner = () => {
     meal_type: 'breakfast'
   });
   
-  // Check if selected date is in the future
   const isDateInFuture = moment(date).isAfter(moment(), 'day');
 
-  // Format selected date for API requests
   const formattedDateForApi = moment(date).format('YYYY-MM-DD');
 
-  // Fetch diet logs on component mount and handle navigation state
   useEffect(() => {
     if (!isDateInFuture) {
       fetchDietLogs();
     } else {
-      // Clear past diet logs when future date is selected
       setPastDietLogs([]);
     }
     
-    // Reset summary visibility when date changes
     setShowSummary(false);
     
-    // Check for data from navigation state
     if (location.state?.source === 'aiChat') {
       if (location.state?.messageContent) {
         setAiSuggestion(location.state.messageContent);
       }
       
-      // Check if there's a selected individual meal
       if (location.state?.selectedMeal) {
-        // Set the new meal form with the selected meal data
         setNewMeal(location.state.selectedMeal);
         
-        // Show notification about the selected meal
         setNotification({
           show: true,
           message: `Selected meal "${location.state.selectedMeal.meal_name}" loaded. You can add it to your plan.`,
           type: 'success'
         });
         
-        // If it's a future date, we're all set
-        // Otherwise we should generate the nutrition chart
         if (!isDateInFuture) {
           generateNutritionChart();
         }
       }
-      // Check if there are meal suggestions from AiChat
       else if (location.state?.mealSuggestions) {
         setAiSuggestedMeals(location.state.mealSuggestions);
         
-        // Show notification about the suggestions
         setNotification({
           show: true,
           message: 'AI meal suggestions loaded. You can add these to your meal plan.',
           type: 'success'
         });
       } else {
-        // If no structured suggestions, generate the chart
         generateNutritionChart();
       }
       
@@ -99,42 +85,33 @@ const MealPlanner = () => {
         });
       }, 5000);
     } else {
-      // No AI suggestion, generate the standard chart
       generateNutritionChart();
     }
   }, [location, isDateInFuture]);
 
-  // When date changes, update past diet logs and nutrition chart
   useEffect(() => {
     if (!isDateInFuture) {
       fetchDietLogs();
     } else {
-      // Clear past diet logs when future date is selected
       setPastDietLogs([]);
     }
     
-    // Reset summary visibility when date changes
     setShowSummary(false);
     
-    // If AI suggested meals are being displayed, don't regenerate the chart
     if (!aiSuggestedMeals) {
       generateNutritionChart();
     }
   }, [date, isDateInFuture, formattedDateForApi]);
 
-  // Update chart when meal plan changes
   useEffect(() => {
-    // Only update chart if AI suggested meals are not being displayed
     if (!aiSuggestedMeals) {
       generateNutritionChart();
     }
   }, [mealPlan]);
 
-  // Fetch diet logs for the selected date
   const fetchDietLogs = async () => {
     setLoading(true);
     try {
-      // Use the past diet endpoint with date parameter
       const response = await fetch(`/api/entries/diet/past`, {
         method: "GET",
         credentials: "include"
@@ -143,20 +120,15 @@ const MealPlanner = () => {
       if (response.ok) {
         const data = await response.json();
         
-        // Format the selected date for comparison (YYYY-MM-DD)
         const selectedDateStr = moment(date).format('YYYY-MM-DD');
         
-        // Filter logs for the selected date
         const filteredLogs = data.filter(entry => {
-          // Format the entry's date to the same format for comparison
           const entryDate = moment(entry.entry_time).format('YYYY-MM-DD');
           return entryDate === selectedDateStr;
         });
         
-        // Set the filtered logs to state
         setPastDietLogs(filteredLogs);
         
-        // Log for debugging
         console.log(`Showing ${filteredLogs.length} diet entries for ${selectedDateStr}`);
       } else {
         console.error("Failed to fetch diet logs:", response.status);
@@ -170,12 +142,10 @@ const MealPlanner = () => {
     }
   };
 
-  // Handle date change
   const handleDateChange = (newDate) => {
     setDate(newDate);
   };
 
-  // Handle new meal input changes
   const handleMealInputChange = (e) => {
     const { name, value } = e.target;
     setNewMeal(prev => ({
@@ -184,9 +154,7 @@ const MealPlanner = () => {
     }));
   };
 
-  // Add a new meal to the plan
   const handleAddMeal = () => {
-    // Basic validation
     if (!newMeal.meal_name || !newMeal.calories) {
       setNotification({
         show: true,
@@ -207,17 +175,13 @@ const MealPlanner = () => {
     
     const dateStr = moment(date).format('YYYY-MM-DD');
     
-    // Update meal plan
     setMealPlan(prevPlan => {
-      // Get the current day plan or create a new one
       const currentDayPlan = prevPlan[dateStr] || {};
       
-      // Update the specific meal type in the day plan
       const updatedDayPlan = {
         ...currentDayPlan,
         [newMeal.meal_type]: {
           ...newMeal,
-          // Ensure values are numbers for calculations
           calories: parseFloat(newMeal.calories) || 0,
           protein_g: parseFloat(newMeal.protein_g) || 0,
           carbs_g: parseFloat(newMeal.carbs_g) || 0,
@@ -225,14 +189,12 @@ const MealPlanner = () => {
         }
       };
       
-      // Return the updated plan
       return {
         ...prevPlan,
         [dateStr]: updatedDayPlan
       };
     });
     
-    // Reset form
     setNewMeal({
       meal_name: '',
       calories: '',
@@ -242,7 +204,6 @@ const MealPlanner = () => {
       meal_type: 'breakfast'
     });
     
-    // Show success notification
     setNotification({
       show: true,
       message: `${newMeal.meal_type.charAt(0).toUpperCase() + newMeal.meal_type.slice(1)} added successfully!`,
@@ -258,25 +219,20 @@ const MealPlanner = () => {
     }, 3000);
   };
 
-  // Get future meal plan for the selected date
   const getFutureMealPlan = () => {
     const dateStr = moment(date).format('YYYY-MM-DD');
     return mealPlan[dateStr] || {};
   };
 
-  // Remove a planned meal
   const removePlannedMeal = (mealType) => {
     const dateStr = moment(date).format('YYYY-MM-DD');
     
     setMealPlan(prevPlan => {
-      // If there's no plan for this date, nothing to do
       if (!prevPlan[dateStr]) return prevPlan;
       
-      // Create a new day plan with the meal type set to null
       const updatedDayPlan = { ...prevPlan[dateStr] };
       updatedDayPlan[mealType] = null;
       
-      // Return the updated plan
       return {
         ...prevPlan,
         [dateStr]: updatedDayPlan
@@ -298,7 +254,6 @@ const MealPlanner = () => {
     }, 3000);
   };
 
-  // Calculate macros for past diet logs
   const getPastDietMacros = () => {
     let calories = 0;
     let protein = 0;
@@ -315,7 +270,6 @@ const MealPlanner = () => {
     return { calories, protein, carbs, fats };
   };
 
-  // Calculate macros for future meal plan
   const getFutureMealMacros = () => {
     let calories = 0;
     let protein = 0;
@@ -336,13 +290,10 @@ const MealPlanner = () => {
     return { calories, protein, carbs, fats };
   };
 
-  // Update the generateNutritionChart function to calculate totals without creating a chart
   const generateNutritionChart = () => {
-    // Use the set state functions instead of declaring new variables
     const calculatedPastMacros = getPastDietMacros();
     const calculatedFutureMacros = getFutureMealMacros();
     
-    // Calculate combined totals
     const calculatedTotalMacros = {
       calories: calculatedPastMacros.calories + calculatedFutureMacros.calories,
       protein: calculatedPastMacros.protein + calculatedFutureMacros.protein,
@@ -350,22 +301,17 @@ const MealPlanner = () => {
       fats: calculatedPastMacros.fats + calculatedFutureMacros.fats
     };
     
-    // Set the calculated macros
     setPastMacros(calculatedPastMacros);
     setFutureMacros(calculatedFutureMacros);
     setTotalMacros(calculatedTotalMacros);
     
-    // Set loading to false since we've calculated the data
     setLoading(false);
   };
 
-  // Tile content for calendar
   const tileContent = ({ date }) => {
     const dateStr = moment(date).format('YYYY-MM-DD');
-    // Check for future meal plans
     const dayPlan = mealPlan[dateStr];
     
-    // Calculate planned calories
     let plannedCalories = 0;
     if (dayPlan) {
       if (dayPlan.breakfast) plannedCalories += parseFloat(dayPlan.breakfast.calories) || 0;
@@ -374,7 +320,6 @@ const MealPlanner = () => {
       if (dayPlan.snacks) plannedCalories += parseFloat(dayPlan.snacks.calories) || 0;
     }
     
-    // Format date to check if we have recorded data
     const hasRecorded = pastDietLogs.some(entry => {
       const entryDateStr = moment(entry.entry_time).format('YYYY-MM-DD');
       return entryDateStr === dateStr;
@@ -397,7 +342,6 @@ const MealPlanner = () => {
     );
   };
 
-  // Reset meal plan for a day
   const resetDayPlan = () => {
     const dateStr = moment(date).format('YYYY-MM-DD');
     
@@ -406,9 +350,7 @@ const MealPlanner = () => {
       delete updatedPlan[dateStr];
       return updatedPlan;
     });
-    
-    // No need to reset selectedMeals since we're not using it anymore
-    
+        
     setNotification({
       show: true,
       message: `Meal plan for ${moment(date).format('MMMM D, YYYY')} has been reset`,
@@ -424,33 +366,23 @@ const MealPlanner = () => {
     }, 3000);
   };
 
-  // Close the AI suggestions panel and generate the nutrition chart
   const closeAiSuggestions = () => {
     setAiSuggestedMeals(null);
     setAiSuggestion('');
     generateNutritionChart();
   };
 
-  // Toggle past diet summary visibility
   const toggleSummary = () => {
     setShowSummary(prev => !prev);
   };
 
-  // Get the formatted date
   const formattedDate = moment(date).format('MMMM D, YYYY');
   
-  // Get plan data for UI
   const futureMealPlan = getFutureMealPlan();
   
-  // The following are managed by state variables now
-  // (pastMacros, futureMacros, and totalMacros)
-  // and updated by generateNutritionChart()
-
-  // Add suggested meal to plan
   const addSuggestedMealToPlan = (meal, mealType) => {
     const dateStr = moment(date).format('YYYY-MM-DD');
     
-    // Create meal object in the format expected by the meal plan
     const mealToAdd = {
       meal_name: meal.meal_name,
       calories: meal.calories,
@@ -460,25 +392,20 @@ const MealPlanner = () => {
       meal_type: mealType
     };
     
-    // Update the meal plan directly with the state updater
     setMealPlan(prevPlan => {
-      // Get current day plan or initialize it
       const currentDayPlan = prevPlan[dateStr] || {};
       
-      // Create updated day plan with the new meal
       const updatedDayPlan = {
         ...currentDayPlan,
         [mealType]: mealToAdd
       };
       
-      // Return the updated plan
       return {
         ...prevPlan,
         [dateStr]: updatedDayPlan
       };
     });
     
-    // Show success notification
     setNotification({
       show: true,
       message: `${meal.meal_name} added as ${mealType}`,
@@ -539,7 +466,6 @@ const MealPlanner = () => {
               </button>
             </div>
             
-            {/* AI Suggested Meals display - replaces the chart when available */}
             {aiSuggestedMeals && (
               <div className="ai-meal-suggestions">
                 <div className="ai-suggestions-header">
@@ -604,7 +530,6 @@ const MealPlanner = () => {
             </div>
             
             <div className="meal-sections-container">
-              {/* Past Diet Log Section - Only show for current or past dates */}
               {!isDateInFuture && (
                 <div className="past-diet-section">
                   <h3 className="meal-section-title">
@@ -677,7 +602,6 @@ const MealPlanner = () => {
                   {isDateInFuture ? 'Meal Plan' : 'Future Meal Plan'}
                 </h3>
                 
-                {/* Add meal input form */}
                 <div className="meal-form">
                   <h4>Add a New Meal</h4>
                   <div className="meal-form-inputs">

@@ -29,21 +29,16 @@ const Import = () => {
   const [savedMeals, setSavedMeals] = useState([]);
   const [mealTypeFilter, setMealTypeFilter] = useState("All");
 
-  // Check for state passed through navigation
   useEffect(() => {
-    // Handle formType from older navigation
     if (location.state && location.state.formType) {
       setActiveForm(location.state.formType);
     }
     
-    // Handle macroInfo from AI Chat
     if (location.state && location.state.macroInfo) {
       const { meal_name, calories, protein_g, carbs_g, fats_g } = location.state.macroInfo;
       
-      // Set the active form to diet if it's not already set
       setActiveForm('diet');
       
-      // Update the diet data with the AI-extracted values
       setDietData(prev => ({
         ...prev,
         meal_name: meal_name || "",
@@ -85,7 +80,6 @@ const Import = () => {
           type: "success"
         });
         
-        // Reset form after successful submission
         if (type === "diet") {
           setDietData({
             meal_name: "",
@@ -104,7 +98,6 @@ const Import = () => {
           });
         }
         
-        // Hide notification after 3 seconds
         setTimeout(() => {
           setNotification({ show: false, message: "", type: "" });
         setActiveForm(null);
@@ -116,7 +109,6 @@ const Import = () => {
           type: "error"
         });
         
-        // Hide error notification after 5 seconds
         setTimeout(() => {
           setNotification({ show: false, message: "", type: "" });
         }, 5000);
@@ -129,7 +121,6 @@ const Import = () => {
         type: "error"
       });
       
-      // Hide error notification after 5 seconds
       setTimeout(() => {
         setNotification({ show: false, message: "", type: "" });
       }, 5000);
@@ -146,7 +137,6 @@ const Import = () => {
     }
   };
 
-  // Load saved meals from localStorage when component mounts
   useEffect(() => {
     const loadSavedMeals = () => {
       try {
@@ -164,12 +154,10 @@ const Import = () => {
     loadSavedMeals();
   }, []);
 
-  // Fetch saved meals when component mounts
   useEffect(() => {
     fetchSavedMeals();
   }, []);
 
-  // Function to fetch saved meals
   const fetchSavedMeals = async () => {
     try {
       const response = await fetch("/api/entries/savedmeals", {
@@ -188,7 +176,6 @@ const Import = () => {
     }
   };
 
-  // Function to save a meal
   const handleSaveMeal = async () => {
     if (!dietData.meal_name) {
       setNotification({
@@ -244,7 +231,6 @@ const Import = () => {
     }
   };
 
-  // Function to delete a saved meal
   const deleteSavedMeal = async (id) => {
     try {
       const response = await fetch(`/api/entries/savedmeals/${id}`, {
@@ -276,7 +262,6 @@ const Import = () => {
     }
   };
 
-  // Function to filter meals by type
   const getFilteredMeals = () => {
     if (mealTypeFilter === "All") {
       return savedMeals;

@@ -36,7 +36,6 @@ const AiChat = () => {
     }
   }, [conversation]);
 
-  // Effect to extract macro info when a diet-related message is added
   useEffect(() => {
     const extractDietInfo = async () => {
       const dietRelatedMessages = conversation.filter(msg => msg.role === 'assistant' && msg.isDietRelated);
@@ -45,7 +44,6 @@ const AiChat = () => {
       const latestMessage = dietRelatedMessages[dietRelatedMessages.length - 1];
       if (!latestMessage.id || !dietMessages[latestMessage.id]) return;
       
-      // If we already have macro info for this message, don't re-extract
       if (macroInfo[latestMessage.id]) return;
       
       try {
@@ -66,7 +64,6 @@ const AiChat = () => {
     extractDietInfo();
   }, [conversation, dietMessages]);
 
-  // Effect to extract meal planner info when a meal-planner-related message is added
   useEffect(() => {
     const extractPlannerInfo = async () => {
       const plannerRelatedMessages = conversation.filter(msg => msg.role === 'assistant' && msg.isMealPlannerRelated);
@@ -75,7 +72,6 @@ const AiChat = () => {
       const latestMessage = plannerRelatedMessages[plannerRelatedMessages.length - 1];
       if (!latestMessage.id || !plannerMessages[latestMessage.id]) return;
       
-      // If we already have planner info for this message, don't re-extract
       if (plannerInfo[latestMessage.id]) return;
       
       try {
@@ -96,30 +92,25 @@ const AiChat = () => {
     extractPlannerInfo();
   }, [conversation, plannerMessages]);
 
-  // Function to clean up formatting from AI responses
   const cleanupFormatting = (text) => {
     if (!text) return '';
     
-    // Remove markdown-style formatting
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
-      .replace(/\*(.*?)\*/g, '$1')     // Remove italic formatting
-      .replace(/__(.*?)__/g, '$1')     // Remove underline formatting
-      .replace(/~~(.*?)~~/g, '$1')     // Remove strikethrough
-      .replace(/```(.*?)```/gs, '$1')  // Remove code blocks
-      .replace(/`(.*?)`/g, '$1');      // Remove inline code
+    return text // remove all sorts of formatting
+      .replace(/\*\*(.*?)\*\*/g, '$1') 
+      .replace(/\*(.*?)\*/g, '$1')    
+      .replace(/__(.*?)__/g, '$1')     
+      .replace(/~~(.*?)~~/g, '$1')     
+      .replace(/```(.*?)```/gs, '$1') 
+      .replace(/`(.*?)`/g, '$1');      
   };
 
-  // Handler for the "Add to Diet" button
   const handleAddToDiet = async (messageId) => {
     try {
       const messageInfo = dietMessages[messageId];
       if (!messageInfo) return;
       
-      // Show loading state
       setLoading(true);
       
-      // Use cached macro info if available, otherwise extract it
       let macroData = macroInfo[messageId];
       
       if (!macroData) {
@@ -136,7 +127,6 @@ const AiChat = () => {
       }
       
       if (macroData) {
-        // Navigate to the Import page with the extracted information
         navigate('/import', {
           state: {
             formType: 'diet',
@@ -154,26 +144,21 @@ const AiChat = () => {
     }
   };
 
-  // Handler for the "Add to Planner" button
   const handleAddToPlanner = async (messageId) => {
     try {
       const messageInfo = plannerMessages[messageId];
       if (!messageInfo) return;
       
-      // Show loading state
       setLoading(true);
       
       const { userQuery, aiResponse } = messageInfo;
       
-      // Check if we already have planner info for this message
       let mealSuggestions = plannerInfo[messageId];
       
-      // If not, extract it now
       if (!mealSuggestions) {
         mealSuggestions = await extractMealPlannerInfo(userQuery, aiResponse);
         
         if (mealSuggestions) {
-          // Cache the extracted data
           setPlannerInfo(prev => ({
             ...prev,
             [messageId]: mealSuggestions
@@ -181,7 +166,6 @@ const AiChat = () => {
         }
       }
       
-      // Navigate to the MealPlanner page with the meal suggestions
       navigate('/meal-planner', {
         state: {
           source: 'aiChat',
@@ -198,7 +182,6 @@ const AiChat = () => {
     }
   };
 
-  // Format nutrition info for display
   const formatNutritionInfo = (info) => {
     if (!info) return null;
     
@@ -215,13 +198,10 @@ const AiChat = () => {
     );
   };
 
-  // Format meal planner info for display
   const formatMealPlannerInfo = (info) => {
     if (!info || !info.meals || !info.plan_title) return null;
     
-    // Function to handle selecting a specific meal
     const handleSelectMeal = (meal) => {
-      // Navigate to meal planner with just this specific meal
       navigate('/meal-planner', {
         state: {
           source: 'aiChat',
@@ -257,7 +237,6 @@ const AiChat = () => {
     );
   };
 
-  // Send message using the AI service
   const sendMessage = async () => {
     if (!prompt.trim()) return;
     
@@ -265,23 +244,19 @@ const AiChat = () => {
     setError('');
     
     try {
-      // Add user message to conversation
       const userMessage = { role: 'user', content: prompt };
       setConversation(prev => [...prev, userMessage]);
       
-      // Store prompt before clearing it
       const currentPrompt = prompt;
-      setPrompt(''); // Clear input field immediately for better UX
+      setPrompt(''); 
       
-      // First, classify if this is a diet-related query
       const messageType = await classifyUserPrompt(currentPrompt);
       console.log("Classification result:", messageType);
       
-      // Get the normal AI response using the conversation history
       const result = await generateAIResponse(currentPrompt, {
         temperature: 0.7,
         maxTokens: 500,
-        conversationHistory: conversation // Pass the full conversation history
+        conversationHistory: conversation 
       });
       
       if (!result || !result.response) {
@@ -290,13 +265,10 @@ const AiChat = () => {
       
       console.log("AI response received:", result.response.substring(0, 50) + "...");
       
-      // Generate a unique ID for this message pair
       const messageId = Date.now().toString();
       
-      // Clean up formatting in the AI response
       const cleanedResponse = cleanupFormatting(result.response);
       
-      // Add AI response to conversation with classification info
       const aiMessage = { 
         id: messageId,
         role: 'assistant', 
@@ -307,7 +279,6 @@ const AiChat = () => {
       
       setConversation(prev => [...prev, aiMessage]);
       
-      // If this is a diet-related message, store the context for later use
       if (messageType === 'diet') {
         setDietMessages(prev => ({
           ...prev,
@@ -318,7 +289,6 @@ const AiChat = () => {
         }));
       }
       
-      // If this is a meal-planner-related message, store the context for later use
       if (messageType === 'meal-planner') {
         setPlannerMessages(prev => ({
           ...prev,
@@ -336,7 +306,6 @@ const AiChat = () => {
     }
   };
 
-  // Get health tips
   const getHealthTips = async () => {
     setLoading(true);
     setError('');
@@ -352,7 +321,6 @@ const AiChat = () => {
         calories_burned: 350
       };
 
-      // Add user query to conversation
       const userMessage = { role: 'user', content: 'Give me a health tip based on my activity data.' };
       setConversation(prev => [...prev, userMessage]);
       
@@ -362,10 +330,8 @@ const AiChat = () => {
         maxTokens: 300
       });
       
-      // Clean up formatting in the AI response
       const cleanedResponse = cleanupFormatting(result.response);
       
-      // Add AI response to conversation
       const aiMessage = { role: 'assistant', content: cleanedResponse };
       setConversation(prev => [...prev, aiMessage]);
     } catch (err) {
@@ -375,13 +341,11 @@ const AiChat = () => {
     }
   };
 
-  // Get meal suggestion
   const getMealSuggestion = async () => {
     setLoading(true);
     setError('');
     
     try {
-      // Add user query to conversation
       const userQuery = 'Suggest a balanced, nutritious meal without artificial sweeteners.';
       const userMessage = { role: 'user', content: userQuery };
       setConversation(prev => [...prev, userMessage]);
@@ -396,13 +360,10 @@ const AiChat = () => {
         maxTokens: 250
       });
       
-      // Generate a unique ID for this message pair
       const messageId = Date.now().toString();
       
-      // Clean up formatting in the AI response
       const cleanedResponse = cleanupFormatting(result.response);
       
-      // Add AI response to conversation
       const aiMessage = { 
         id: messageId,
         role: 'assistant', 
@@ -412,7 +373,6 @@ const AiChat = () => {
       
       setConversation(prev => [...prev, aiMessage]);
       
-      // Store this message for later extraction
       setDietMessages(prev => ({
         ...prev,
         [messageId]: {
@@ -427,13 +387,11 @@ const AiChat = () => {
     }
   };
 
-  // Get workout suggestion
   const getWorkoutSuggestion = async () => {
     setLoading(true);
     setError('');
     
     try {
-      // Add user query to conversation
       const userMessage = { role: 'user', content: 'Suggest a 30-minute home workout routine.' };
       setConversation(prev => [...prev, userMessage]);
       
@@ -443,10 +401,8 @@ const AiChat = () => {
         maxTokens: 1000
       });
       
-      // Clean up formatting in the AI response
       const cleanedResponse = cleanupFormatting(result.response);
       
-      // Add AI response to conversation
       const aiMessage = { role: 'assistant', content: cleanedResponse };
       setConversation(prev => [...prev, aiMessage]);
     } catch (err) {
@@ -456,12 +412,10 @@ const AiChat = () => {
     }
   };
 
-  // Handle clearing chat history
   const handleClearChat = async () => {
     try {
       setLoading(true);
       
-      // Clear backend conversation history
       const response = await fetch('/api/ai/clear-history', {
         method: 'POST',
         headers: {
@@ -474,28 +428,20 @@ const AiChat = () => {
         throw new Error('Failed to clear backend conversation history');
       }
       
-      // Clear the local conversation state
       setConversation([]);
-      // Clear stored diet messages
       setDietMessages({});
-      // Clear stored planner messages
       setPlannerMessages({});
-      // Clear macro info
       setMacroInfo({});
-      // Clear planner info
       setPlannerInfo({});
       
-      // Clear localStorage
       localStorage.removeItem('aiChatHistory');
       
-      // Show success notification
       setNotification({
         show: true,
         message: 'Chat history cleared successfully',
         type: 'success'
       });
       
-      // Hide notification after 3 seconds
       setTimeout(() => {
         setNotification({ show: false, message: '', type: '' });
       }, 3000);

@@ -210,7 +210,6 @@ function DietScore() {
     let message = "";
 
     if (avgProtein < min) {
-      // Below minimum
       const deficitPercent = (min - avgProtein) / min;
       score = 60 - (deficitPercent * 60);
       message = "Protein intake is below recommended levels. Consider adding more protein to your diet.";
@@ -225,7 +224,6 @@ function DietScore() {
       score = 100;
       message = "Protein intake is optimal for your body weight. Great job!";
     } else {
-      // Above maximum
       const excessPercent = Math.min((avgProtein - maxProtein) / maxProtein, 1);
       score = 100 - (excessPercent * 50);
       message = "Protein intake may be higher than necessary. Consider balancing your macronutrients.";
@@ -243,7 +241,6 @@ function DietScore() {
     let message = "";
 
     if (avgCarbs < min) {
-      // Below minimum
       const deficitPercent = (min - avgCarbs) / min;
       score = 60 - (deficitPercent * 60);
       message = "Carbohydrate intake is below recommended minimum. Consider adding more complex carbs.";
@@ -258,7 +255,6 @@ function DietScore() {
       score = 100;
       message = "Carbohydrate intake is in the optimal range. Well done!";
     } else {
-      // Above maximum percentage
       const excessPercent = Math.min((carbPercent - maxPercent) / maxPercent, 1);
       score = 100 - (excessPercent * 50);
       message = "Carbohydrate intake may be higher than ideal. Consider reducing simple carbs.";
@@ -269,7 +265,6 @@ function DietScore() {
 
   const calculateFatsScore = (avgFats, avgCalories) => {
     const { minPercent, idealPercent, maxPercent } = REFERENCE.fats;
-    // Convert fats to calories (9 calories per gram)
     const fatCalories = avgFats * 9;
     const fatPercent = fatCalories / avgCalories;
     let score = 0;
@@ -321,7 +316,6 @@ function DietScore() {
     return { score, message };
   };
 
-  // Display a message about the score
   const getScoreMessage = () => {
     if (score >= 90) {
       return "Excellent! Your diet is very well balanced.";

@@ -32,6 +32,50 @@ router.get("/profile", async (req, res) => {
   }
 });
 
+router.post(
+  "/profile",
+  [
+    body("age").isInt({ min: 1 }).withMessage("Valid age is required."),
+    body("weight_kg").isFloat({ gt: 0 }).withMessage("Valid weight (kg) is required."),
+    body("height_cm").isFloat({ gt: 0 }).withMessage("Valid height (cm) is required."),
+    body("gender").isIn(["Male", "Female", "Other"]).withMessage("Invalid gender selected."),
+    body("activity_level").isIn(["Sedentary", "Moderate", "Intermediate", "Challenging", "Advanced"]).withMessage("Invalid activity level selected."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const userId = req.session.user.user_id;
+    const { age, weight_kg, height_cm, gender, activity_level } = req.body;
+
+    try {
+      const profileQuery = `
+           INSERT INTO user_profiles (user_id, age, weight_kg, height_cm, gender, activity_level)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (user_id)
+           DO UPDATE SET
+               age = EXCLUDED.age,
+               weight_kg = EXCLUDED.weight_kg,
+               height_cm = EXCLUDED.height_cm,
+               gender = EXCLUDED.gender,
+               activity_level = EXCLUDED.activity_level,
+               created_at = CURRENT_TIMESTAMP -- Update timestamp on conflict update
+           RETURNING *;
+       `;
+      const values = [userId, age, weight_kg, height_cm, gender, activity_level];
+      const result = await pool.query(profileQuery, values);
+
+      res.status(200).json({ message: "Profile saved successfully!", profile: result.rows[0] });
+
+    } catch (err) {
+      console.error("Error saving initial profile:", err);
+      res.status(500).json({ error: "Server error while saving profile data." });
+    }
+  }
+);
+
 router.put(
   "/profile",
   [
@@ -85,6 +129,92 @@ router.put(
       console.error("Error updating profile:", err);
       res.status(500).json({ error: "Server error" });
     }
+  }
+);
+
+router.get("/goals", async (req, res) => {
+  const { user_id } = req.session.user; 
+
+  try {
+      let goalsQuery = await pool.query("SELECT * FROM user_goals WHERE user_id = $1", [user_id]);
+
+      if (goalsQuery.rows.length === 0) {
+          console.log(`No goals found for user ${user_id}, creating default entry.`);
+          goalsQuery = await pool.query(
+              "INSERT INTO user_goals (user_id) VALUES ($1) RETURNING *",
+              [user_id]
+          );
+      }
+
+      const { goal_id, user_id: _, created_at, updated_at, ...userGoals } = goalsQuery.rows[0];
+      res.json(userGoals);
+
+  } catch (err) {
+      console.error(`Error fetching/creating goals for user ${user_id}:`, err);
+      res.status(500).json({ error: "Server error retrieving goals." });
+  }
+});
+
+router.put(
+  "/goals",
+  [ 
+      body("target_daily_steps").isInt({ min: 0 }).withMessage("Daily steps must be a non-negative number."),
+      body("target_weekly_workout_minutes").isInt({ min: 0 }).withMessage("Workout minutes must be a non-negative number."),
+      body("target_calorie_intake").isInt({ min: 0 }).withMessage("Calorie intake must be a non-negative number."),
+      body("target_water_intake").isInt({ min: 0 }).withMessage("Water intake must be a non-negative number."),
+      body("target_sleep_hours").isFloat({ min: 0, max: 24 }).withMessage("Sleep hours must be a valid number between 0 and 24."),
+  ],
+  async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { user_id } = req.session.user;
+      const {
+          target_daily_steps,
+          target_weekly_workout_minutes,
+          target_calorie_intake,
+          target_water_intake,
+          target_sleep_hours
+      } = req.body;
+
+      try {
+          const updateQuery = `
+              INSERT INTO user_goals (
+                  user_id, target_daily_steps, target_weekly_workout_minutes,
+                  target_calorie_intake, target_water_intake, target_sleep_hours, updated_at
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, NOW())
+              ON CONFLICT (user_id)
+              DO UPDATE SET
+                  target_daily_steps = EXCLUDED.target_daily_steps,
+                  target_weekly_workout_minutes = EXCLUDED.target_weekly_workout_minutes,
+                  target_calorie_intake = EXCLUDED.target_calorie_intake,
+                  target_water_intake = EXCLUDED.target_water_intake,
+                  target_sleep_hours = EXCLUDED.target_sleep_hours,
+                  updated_at = NOW()
+              RETURNING *; -- Return updated goals
+          `;
+          const values = [
+              user_id,
+              target_daily_steps,
+              target_weekly_workout_minutes,
+              target_calorie_intake,
+              target_water_intake,
+              target_sleep_hours
+          ];
+
+          const result = await pool.query(updateQuery, values);
+
+          const { goal_id, user_id: _, created_at, updated_at, ...updatedGoals } = result.rows[0];
+
+          res.json({ message: "Goals updated successfully", goals: updatedGoals });
+
+      } catch (err) {
+          console.error(`Error updating goals for user ${user_id}:`, err);
+          res.status(500).json({ error: "Server error updating goals." });
+      }
   }
 );
 

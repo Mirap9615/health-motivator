@@ -149,5 +149,90 @@ router.get('/completed/daily', isAuthenticated, async (req, res) => {
     }
 });
 
+const getUserGoals = async (userId, client = pool) => {
+    let goalsQuery = await client.query("SELECT * FROM user_goals WHERE user_id = $1", [userId]);
+    if (goalsQuery.rows.length === 0) {
+        console.log(`No goals found for user ${userId}, creating default entry.`);
+        goalsQuery = await client.query(
+            "INSERT INTO user_goals (user_id) VALUES ($1) RETURNING *",
+            [userId]
+        );
+    }
+    const { goal_id, user_id: _, created_at, updated_at, ...userGoals } = goalsQuery.rows[0];
+    return userGoals;
+}
+
+// GET /api/goals: fetches system goals combined with user's completion status & personalized targets
+router.get('/', isAuthenticated, async (req, res) => {
+    const userId = req.session.user.user_id;
+
+    try {
+        const [systemGoalsResult, userGoals, completionResult] = await Promise.all([
+            pool.query('SELECT goal_key, goal_text, goal_type FROM system_goals ORDER BY goal_type, goal_key'),
+            getUserGoals(userId), 
+            pool.query(`
+                SELECT goal_key, completed_at
+                FROM goal_completion
+                WHERE user_id = $1
+                  AND (
+                      completion_period_start = CURRENT_DATE
+                      OR
+                      completion_period_start = DATE_TRUNC('week', CURRENT_DATE)::DATE
+                  )
+            `, [userId])
+        ]);
+
+        const allSystemGoals = systemGoalsResult.rows;
+
+        const completionMap = new Map();
+        completionResult.rows.forEach(row => {
+            if (row.completed_at) {
+                completionMap.set(row.goal_key, true);
+            }
+        });
+
+        const goals = {
+            daily: [],
+            weekly: [],
+        };
+
+        allSystemGoals.forEach(goal => {
+            let dynamicText = goal.goal_text; 
+
+            switch (goal.goal_key) {
+                case 'daily_steps':
+                    dynamicText = `Achieve ${userGoals.target_daily_steps?.toLocaleString() || 'N/A'} steps today`;
+                    break;
+                case 'daily_cardio':
+                    const weeklyMinutes = userGoals.target_weekly_workout_minutes;
+                    const dailyMinutes = weeklyMinutes ? Math.round(weeklyMinutes / 7) : 'N/A';
+                    dynamicText = `Complete ${dailyMinutes} minutes of cardio`;
+                    break;
+                case 'daily_water':
+                    dynamicText = `Drink ${userGoals.target_water_intake || 'N/A'} glasses of water`;
+                    break;
+            }
+
+            const goalData = {
+                key: goal.goal_key,
+                text: dynamicText, 
+                completed: completionMap.has(goal.goal_key)
+            };
+
+            if (goal.goal_type === 'daily') {
+                goals.daily.push(goalData);
+            } else if (goal.goal_type === 'weekly') {
+                goals.weekly.push(goalData);
+            }
+        });
+
+        res.json(goals);
+
+    } catch (error) {
+        console.error("Error fetching combined goals:", error);
+        res.status(500).json({ error: "Server error fetching goals" });
+    }
+});
+
   
 module.exports = router;
