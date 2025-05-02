@@ -18,10 +18,22 @@ const colors = ['#8884d8', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c', '#d0ed57'
 const dayOrder = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function DashboardBar({ dataLabel, dataColor, chartData = sampleData }) {
+  // Get current day of week (0-6, where 0 is Sunday)
+  const currentDayIndex = new Date().getDay();
+  const currentDayName = dayOrder[currentDayIndex];
+  
   // Create a complete dataset with all days, ensuring days with no data still appear
-  const completeData = dayOrder.map(day => {
+  const completeData = dayOrder.map((day, index) => {
+    // Skip future days (days with index greater than current day index)
+    const isFutureDay = index > currentDayIndex;
     const dayData = chartData.find(item => item.day === day);
-    // If day exists in chartData use it, otherwise create a new entry with 0 calories
+    
+    // If it's a future day, set calories to 0 regardless of chart data
+    if (isFutureDay) {
+      return { day, calories: 0 };
+    }
+    
+    // Otherwise use existing data or set to 0 if no data
     return dayData || { day, calories: 0 };
   });
   
