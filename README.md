@@ -53,19 +53,18 @@ Built with a React frontend and a Node.js/Express backend backed by PostgreSQL, 
     cd server
     npm install
     ```
-    *   Create a `.env` file in the `server` directory based on `.env.example` (if provided) or configure the following variables:
+    *   Create a `.env` file in the `server`:
         *   `DATABASE_URL` (e.g., `postgresql://user:password@host:port/database`)
-        *   `SESSION_SECRET` (a long, random string)
-        *   `PORT` (optional, defaults to 5001 or similar)
-        *   *(Add any other required environment variables like AI API keys)*
-    *   **Database Setup:** Connect to your PostgreSQL instance and run the schema creation SQL commands found in `database_schema.sql` (or specify the location) to create the necessary tables (`users`, `user_profiles`, `diet_entries`, etc.).
+        *   `SESSION_SECRET` 
+        *   `PORT` 
+    *   **Database Setup:** Connect to your PostgreSQL instance and run the schema creation SQL commands found in `console.sql` to create the necessary tables. 
     *   **Start Backend Server:**
         ```bash
         npm run dev
         # OR
         node index.cjs
         ```
-        The server should typically run on `http://localhost:5001`.
+        The server is hosted on `http://localhost:3000`.
 
 3.  **Frontend Setup:**
     *   Navigate back to the project root (if you were in `server`): `cd ..`
@@ -77,7 +76,7 @@ Built with a React frontend and a Node.js/Express backend backed by PostgreSQL, 
         ```bash
         npm run dev
         ```
-        The frontend should typically be accessible at `http://localhost:5173`.
+        The frontend should typically be accessible at `http://localhost:3000`.
 
 ## Running Tests
 
@@ -87,23 +86,21 @@ Built with a React frontend and a Node.js/Express backend backed by PostgreSQL, 
     npm test
     # Or, if you configure a specific test script: npm run test:api
     ```
-    *(This assumes your `package.json` in the `server` directory has a `test` script configured to run Jest/Supertest)*
 
 -   **(Planned) Test Coverage:**
     ```bash
     cd server
     npm run test:coverage
-    # Command to generate coverage reports (configure in package.json)
     ```
 
 ## Usage 
 
 1.  Ensure both the backend and frontend servers are running.
-2.  Open your browser and navigate to the frontend URL (e.g., `http://localhost:5173`).
+2.  Open your browser and navigate to the frontend URL (`http://localhost:3000`).
 3.  **Register** a new account or **Login** with existing credentials.
 4.  Navigate through the application using the **Sidebar**.
 5.  View your personalized **Dashboard**.
-6.  Go to the **Diet** or **Fitness** pages to view historical data and trends. *(Currently, adding new entries might be via an `/import` route or needs UI implementation)*.
+6.  Go to the **Diet** or **Fitness** pages to view historical data and trends. 
 7.  Visit the **Profile** page to view your details and goals. Click "Edit" to make changes and "Save".
 8.  Interact with the **Checklist** on the Dashboard to view/complete goals and see AI **Recommendations**. Click recommendation buttons to view details in a modal.
 
