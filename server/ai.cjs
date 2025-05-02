@@ -5,40 +5,31 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Initialize the OpenAI client but configure it to use DeepSeek's API
 const deepseekAI = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com/v1', // DeepSeek's API endpoint
+  baseURL: 'https://api.deepseek.com/v1',
 });
 
-// Maintain conversation history for each session
 const conversationHistories = {};
 
-// Create an endpoint to handle AI requests
 router.post('/generate', async (req, res) => {
   try {
     const { prompt, options = {} } = req.body;
     
-    // Validate input
     if (!prompt || typeof prompt !== 'string') {
       console.error('AI API error: Invalid prompt', { prompt });
       return res.status(400).json({ error: 'Invalid prompt provided' });
     }
     
-    // Get conversation history from options
     const conversationHistory = options.conversationHistory || [];
     
-    // Add conversation style instructions to prevent formatting
     const formattingInstructions = "Respond in a natural, conversational way. Do not use markdown formatting like bold (**), italic (*), code blocks (```), or other special formatting. Just use plain text in your response.";
     
-    // Prepare messages array
     let messages = [
       { role: "system", content: formattingInstructions }
     ];
     
-    // Add conversation history if available
     if (conversationHistory.length > 0) {
-      // Convert conversation history to the format expected by the API
       const formattedHistory = conversationHistory.map(msg => ({
         role: msg.role,
         content: msg.content
@@ -46,10 +37,8 @@ router.post('/generate', async (req, res) => {
       messages = [...messages, ...formattedHistory];
     }
     
-    // Add the current prompt
     messages.push({ role: "user", content: prompt });
     
-    // Set default parameters
     const model = options.model || 'deepseek-chat';
     const maxTokens = options.maxTokens || 10000;
     const temperature = options.temperature || 0.7;
@@ -61,7 +50,6 @@ router.post('/generate', async (req, res) => {
       conversationLength: messages.length 
     });
     
-    // Call the DeepSeek API using OpenAI client with the conversation history
     const completion = await deepseekAI.chat.completions.create({
       model: model,
       messages: messages,
@@ -78,7 +66,6 @@ router.post('/generate', async (req, res) => {
       responseSample: aiResponse.substring(0, 30) + "..."
     });
     
-    // Return the response
     res.json({ 
       response: aiResponse,
       usage: completion.usage
@@ -87,19 +74,16 @@ router.post('/generate', async (req, res) => {
   } catch (error) {
     console.error('AI API error:', error);
     
-    // More detailed error response
     const errorDetails = {
       error: 'Failed to generate response',
       message: error.message,
       code: error.code || 'UNKNOWN_ERROR'
     };
     
-    // Check if it's a rate limit error
     if (error.message && error.message.includes('rate limit')) {
       errorDetails.suggestion = 'The AI service is currently experiencing high demand. Please try again in a moment.';
     }
     
-    // Check if it's an API key error
     if (error.message && error.message.includes('api key')) {
       errorDetails.suggestion = 'There might be an issue with the API configuration. Please contact the administrator.';
     }
@@ -108,7 +92,6 @@ router.post('/generate', async (req, res) => {
   }
 });
 
-// Add an endpoint to clear conversation history
 router.post('/clear-history', (req, res) => {
   const conversationId = req.session?.id || 'default';
   if (conversationHistories[conversationId]) {
@@ -117,7 +100,6 @@ router.post('/clear-history', (req, res) => {
   res.json({ success: true, message: 'Conversation history cleared' });
 });
 
-// Add a simple test route for direct testing
 router.get('/test', async (req, res) => {
   try {
     const testPrompt = req.query.prompt || "Give me three brief health tips for someone trying to lose weight";
