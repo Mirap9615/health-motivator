@@ -63,9 +63,9 @@ const DashboardChecklist = ({ healthScore = 50 }) => {
         const data = await goalsRes.value.json();
         fetchedDailyTasks = Array.isArray(data.daily) ? data.daily : [];
         fetchedWeeklyTasks = Array.isArray(data.weekly) ? data.weekly : [];
-      } else {
+        } else {
         fetchError = `System Goals fetch failed: ${goalsRes.reason || goalsRes.value.statusText}`;
-      }
+        }
 
       if (userGoalsRes.status === 'fulfilled' && userGoalsRes.value.ok) {
         const userGoalsData = await userGoalsRes.value.json();
@@ -167,7 +167,7 @@ const DashboardChecklist = ({ healthScore = 50 }) => {
       return newState;
     });
   }, [userProfile, userGoals]);
-
+  
   useEffect(() => {
     if (userProfile && userGoals && !isLoadingChecklistData) { 
       fetchAndSetPersonalizedRecommendations();
@@ -195,12 +195,12 @@ const DashboardChecklist = ({ healthScore = 50 }) => {
 
     try {
       const response = await fetch(`/api/goals/${goalKey}/toggle`, { method: 'POST', credentials: 'include' });
-      if (!response.ok) {
+        if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.message || `Toggle failed: ${response.status}`);
-      }
+        }
     } catch (error) {
-      console.error("Error toggling task completion:", error);
+        console.error("Error toggling task completion:", error);
       optimisticUpdate(originalCompletedStatus);
       setChecklistError(error.message || "Failed to update goal status.");
     }
@@ -324,7 +324,7 @@ const currentRecommendations = useMemo(() => {
       return (recommendationView === 'daily' ? dailyKeys : weeklyKeys).map(key => ({ type: key, ...recommendations[key] }));
 }, [recommendationView, recommendations]);
 
-return (
+  return (
   <>
     <div className="checklist-container">
       <div className="section-toggle-container">
@@ -342,32 +342,32 @@ return (
             <button className={`tab-button ${goalView === 'daily' ? 'tab-active' : 'tab-inactive'}`} onClick={() => setGoalView('daily')} aria-pressed={goalView === 'daily'} > Daily </button>
             <button className={`tab-button ${goalView === 'weekly' ? 'tab-active' : 'tab-inactive'}`} onClick={() => setGoalView('weekly')} aria-pressed={goalView === 'weekly'} > Weekly </button>
           </div>
-
+          
           {isLoadingChecklistData && <LoadingSpinner size="small" />}
           {checklistError && activeSection === 'goals' && <p className="error-message">{checklistError}</p>}
 
           {!isLoadingChecklistData && !checklistError && (
             <>
-              <ul className="task-list">
+          <ul className="task-list">
                 {currentGoals.length === 0 && <li>No {goalView} goals found.</li>}
                 {currentGoals.map((task) => (
                   <li key={task.key} className={`task-item ${highlightedGoalKey === task.key ? 'task-highlighted' : ''}`} onClick={() => handleGoalItemClick(task.key)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && handleGoalItemClick(task.key)} >
-                    <div className="task-content">
+                <div className="task-content">
                       <div className="custom-checkbox" onClick={(e) => { e.stopPropagation(); toggleTaskCompletion(task.key); }} role="checkbox" aria-checked={task.completed} tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && toggleTaskCompletion(task.key)} >
                         <input type="checkbox" checked={task.completed} readOnly className="checkbox-input" />
-                        <span className="checkmark"></span>
-                      </div>
+                    <span className="checkmark"></span>
+                  </div>
                       <span className="task-text">{task.text}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                </div>
+          </li>
+        ))}
+      </ul>
               {currentGoals.length > 0 && (<p className="task-summary">Completed: {completedGoalCount} / {currentGoals.length}</p>)}
               {highlightedGoalKey !== null && (
                 <div className="goal-actions">
                    <button className="ai-suggestion-button" onClick={handleGoalAISuggestion} disabled={loadingGoalAISuggestion || !userProfile} title={!userProfile ? "User profile needed for suggestion" : "Get AI Suggestion"} >
                       {loadingGoalAISuggestion ? "Generating..." : "AI Tip"}
-                   </button>
+            </button>
                    {goalAISuggestion && !loadingGoalAISuggestion && (<div className="ai-suggestion-display"><p>{goalAISuggestion}</p></div>)}
                 </div>
               )}

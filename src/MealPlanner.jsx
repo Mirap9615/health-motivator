@@ -421,6 +421,12 @@ const MealPlanner = () => {
     }, 3000);
   };
 
+  // Convert future meals to an array format compatible with PastDietSummaryTemplate
+  const getFutureMealsArray = () => {
+    const futureMeals = getFutureMealPlan();
+    return Object.values(futureMeals).filter(meal => meal !== null);
+  };
+
   return (
     <>
       <SideBar />
@@ -736,14 +742,7 @@ const MealPlanner = () => {
                         </div>
                       ) : null
                     )}
-                    
-                    <div className="future-plan-summary">
-                      <h4>Planned Meals Summary</h4>
-                      <p>Calories: {Math.round(futureMacros.calories)}</p>
-                      <p>Protein: {Math.round(futureMacros.protein)}g</p>
-                      <p>Carbs: {Math.round(futureMacros.carbs)}g</p>
-                      <p>Fats: {Math.round(futureMacros.fats)}g</p>
-                    </div>
+                    <PastDietSummaryTemplate pastMacros={getFutureMealsArray()} />
                   </div>
                 ) : (
                   <div className="empty-section-message">

@@ -1,11 +1,18 @@
 import { generateAIResponse } from './aiServices';
 
 const SIMPLE_STYLE_INSTRUCTION = "Use simple sentences. Avoid complex formatting like nested lists or excessive symbols/parentheses unless necessary for clarity (like in workout steps).";
-const TITLE_SEPARATOR = "|||"; 
+const TITLE_SEPARATOR = "|||";
 
 
 export const classifyUserPrompt = async (userPrompt) => {
-    const classificationPrompt = `CLASSIFICATION TASK ONLY...\nUser query: "${userPrompt}"`;
+    const classificationPrompt = `CLASSIFICATION TASK ONLY. Classify the user query into one of these categories:
+1. "diet" - if query is about a specific meal, food item, nutritional information, or adding food to diet tracking
+2. "meal-planner" - if query is about meal planning, meal schedules, or creating a meal plan for multiple days
+3. "other" - if query is not about meals, food, nutrition, or diet
+
+Respond with ONLY ONE WORD: "diet", "meal-planner", or "other".
+User query: "${userPrompt}"`;
+
     try {
         const result = await generateAIResponse(classificationPrompt, { temperature: 0.1, maxTokens: 10 });
         if (!result?.response) throw new Error('Failed to classify');
@@ -20,12 +27,58 @@ export const classifyUserPrompt = async (userPrompt) => {
 };
 
 export const extractMacroInfo = async (userQuery, aiResponse) => {
-    const extractionPrompt = `Based on this conversation...\nUser query: "${userQuery}"\nYour response: "${aiResponse}"\nExtract ONLY a JSON...`;
+    const extractionPrompt = `Based on this conversation about food/nutrition:
+User query: "${userQuery}"
+Your response: "${aiResponse}"
+
+I need you to ONLY extract or estimate the nutritional information for the meal mentioned in this conversation.
+If multiple meals are mentioned, focus on the MAIN meal.
+
+RESPOND ONLY WITH THE FOLLOWING JSON FORMAT AND NOTHING ELSE:
+{
+  "meal_name": "Name of the specific meal",
+  "calories": 500,
+  "protein_g": 30,
+  "carbs_g": 50,
+  "fats_g": 20
+}
+
+Replace the example values with reasonable estimates based on the meal. 
+Use numbers not strings for numeric values.
+If you cannot extract exact values, make your best estimate based on similar foods.
+DO NOT include any explanations, markdown formatting, or any text before or after the JSON.`;
+
     try {
-        const result = await generateAIResponse(extractionPrompt, { temperature: 0.3, maxTokens: 200 });
-        const jsonMatch = result.response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) return JSON.parse(jsonMatch[0]);
-        return null;
+        const result = await generateAIResponse(extractionPrompt, { 
+            temperature: 0.3, 
+            maxTokens: 250,
+            forceJSON: true
+        });
+        
+        if (!result?.response) return null;
+        
+        // Clean up any potential formatting that might interfere with JSON parsing
+        const cleanResponse = result.response
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
+        
+        try {
+            // Try to parse the entire response as JSON first
+            return JSON.parse(cleanResponse);
+        } catch (directParseError) {
+            // If that fails, try to extract JSON object using regex
+            const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    return JSON.parse(jsonMatch[0]);
+                } catch (parseError) {
+                    console.error("Failed to parse macro JSON:", parseError);
+                    return null;
+                }
+            }
+            return null;
+        }
     } catch (error) {
         console.error('Error extracting macro info:', error);
         return null;
@@ -33,12 +86,69 @@ export const extractMacroInfo = async (userQuery, aiResponse) => {
 };
 
 export const extractMealPlannerInfo = async (userQuery, aiResponse) => {
-     const extractionPrompt = `Based on this conversation...\nUser query: "${userQuery}"\nYour response: "${aiResponse}"\nExtract THREE meal options... Return ONLY a JSON object...`;
+     const extractionPrompt = `Based on this conversation about meal planning:
+User query: "${userQuery}"
+Your response: "${aiResponse}"
+
+I need you to extract or estimate nutritional information for UP TO THREE meal options mentioned in this conversation.
+
+RESPOND ONLY WITH THE FOLLOWING JSON FORMAT AND NOTHING ELSE:
+{
+  "plan_title": "Brief title describing the meal plan",
+  "meals": [
+    {
+      "meal_name": "Name of meal 1",
+      "calories": 500,
+      "protein_g": 30,
+      "carbs_g": 50,
+      "fats_g": 20
+    },
+    {
+      "meal_name": "Name of meal 2",
+      "calories": 450,
+      "protein_g": 25,
+      "carbs_g": 45,
+      "fats_g": 15
+    }
+  ]
+}
+
+Replace the example values with reasonable estimates based on the meals mentioned.
+Use numbers not strings for numeric values.
+If you cannot extract exact values, make your best estimate based on similar foods.
+DO NOT include any explanations, markdown formatting, or any text before or after the JSON.`;
+
     try {
-        const result = await generateAIResponse(extractionPrompt, { temperature: 0.3, maxTokens: 600 });
-        const jsonMatch = result.response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) return JSON.parse(jsonMatch[0]);
-        return null;
+        const result = await generateAIResponse(extractionPrompt, { 
+            temperature: 0.3, 
+            maxTokens: 600,
+            forceJSON: true
+        });
+        
+        if (!result?.response) return null;
+        
+        // Clean up any potential formatting that might interfere with JSON parsing
+        const cleanResponse = result.response
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
+        
+        try {
+            // Try to parse the entire response as JSON first
+            return JSON.parse(cleanResponse);
+        } catch (directParseError) {
+            // If that fails, try to extract JSON object using regex
+            const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    return JSON.parse(jsonMatch[0]);
+                } catch (parseError) {
+                    console.error("Failed to parse meal planner JSON:", parseError);
+                    return null;
+                }
+            }
+            return null;
+        }
     } catch (error) {
         console.error('Error extracting meal planner info:', error);
         return null;

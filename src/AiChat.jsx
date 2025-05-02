@@ -183,7 +183,19 @@ const AiChat = () => {
   };
 
   const formatNutritionInfo = (info) => {
-    if (!info) return null;
+    // Validate that we have complete nutrition information before displaying
+    if (!info || !info.meal_name || 
+        typeof info.calories === 'undefined' || 
+        typeof info.protein_g === 'undefined' || 
+        typeof info.carbs_g === 'undefined' || 
+        typeof info.fats_g === 'undefined') {
+      
+      return (
+        <div className="nutrition-info error">
+          <p>Could not display complete nutrition information. Try asking about a specific meal.</p>
+        </div>
+      );
+    }
     
     return (
       <div className="nutrition-info">
@@ -199,7 +211,14 @@ const AiChat = () => {
   };
 
   const formatMealPlannerInfo = (info) => {
-    if (!info || !info.meals || !info.plan_title) return null;
+    // Validate that we have complete meal planner information
+    if (!info || !info.plan_title || !Array.isArray(info.meals) || info.meals.length === 0) {
+      return (
+        <div className="meal-planner-info error">
+          <p>Could not display complete meal plan information. Try asking about meal planning.</p>
+        </div>
+      );
+    }
     
     const handleSelectMeal = (meal) => {
       navigate('/meal-planner', {
@@ -215,23 +234,34 @@ const AiChat = () => {
       <div className="meal-planner-info">
         <h4>{info.plan_title}</h4>
         <div className="meal-options">
-          {info.meals.map((meal, index) => (
-            <div key={index} className="meal-option">
-              <h5>{meal.meal_name}</h5>
-              <div className="macro-badges">
-                <span className="macro-badge calorie">{meal.calories} cal</span>
-                <span className="macro-badge protein">{meal.protein_g}g protein</span>
-                <span className="macro-badge carbs">{meal.carbs_g}g carbs</span>
-                <span className="macro-badge fats">{meal.fats_g}g fats</span>
+          {info.meals.map((meal, index) => {
+            // Skip meals with missing data
+            if (!meal || !meal.meal_name || 
+                typeof meal.calories === 'undefined' || 
+                typeof meal.protein_g === 'undefined' || 
+                typeof meal.carbs_g === 'undefined' || 
+                typeof meal.fats_g === 'undefined') {
+              return null;
+            }
+            
+            return (
+              <div key={index} className="meal-option">
+                <h5>{meal.meal_name}</h5>
+                <div className="macro-badges">
+                  <span className="macro-badge calorie">{meal.calories} cal</span>
+                  <span className="macro-badge protein">{meal.protein_g}g protein</span>
+                  <span className="macro-badge carbs">{meal.carbs_g}g carbs</span>
+                  <span className="macro-badge fats">{meal.fats_g}g fats</span>
+                </div>
+                <button 
+                  className="select-meal-button" 
+                  onClick={() => handleSelectMeal(meal)}
+                >
+                  Select This Meal
+                </button>
               </div>
-              <button 
-                className="select-meal-button" 
-                onClick={() => handleSelectMeal(meal)}
-              >
-                Select This Meal
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -279,6 +309,7 @@ const AiChat = () => {
       
       setConversation(prev => [...prev, aiMessage]);
       
+      // Immediately process diet-related messages
       if (messageType === 'diet') {
         setDietMessages(prev => ({
           ...prev,
@@ -287,8 +318,22 @@ const AiChat = () => {
             aiResponse: cleanedResponse
           }
         }));
+        
+        // Immediately extract and set macro information
+        try {
+          const extractedInfo = await extractMacroInfo(currentPrompt, cleanedResponse);
+          if (extractedInfo) {
+            setMacroInfo(prev => ({
+              ...prev,
+              [messageId]: extractedInfo
+            }));
+          }
+        } catch (extractError) {
+          console.error('Error extracting diet info:', extractError);
+        }
       }
       
+      // Immediately process meal-planner-related messages
       if (messageType === 'meal-planner') {
         setPlannerMessages(prev => ({
           ...prev,
@@ -297,6 +342,19 @@ const AiChat = () => {
             aiResponse: cleanedResponse
           }
         }));
+        
+        // Immediately extract and set meal planner information
+        try {
+          const extractedInfo = await extractMealPlannerInfo(currentPrompt, cleanedResponse);
+          if (extractedInfo) {
+            setPlannerInfo(prev => ({
+              ...prev,
+              [messageId]: extractedInfo
+            }));
+          }
+        } catch (extractError) {
+          console.error('Error extracting meal planner info:', extractError);
+        }
       }
     } catch (err) {
       console.error("AI Chat Error:", err);
@@ -380,6 +438,19 @@ const AiChat = () => {
           aiResponse: cleanedResponse
         }
       }));
+      
+      // Immediately extract and set macro information
+      try {
+        const extractedInfo = await extractMacroInfo(userQuery, cleanedResponse);
+        if (extractedInfo) {
+          setMacroInfo(prev => ({
+            ...prev,
+            [messageId]: extractedInfo
+          }));
+        }
+      } catch (extractError) {
+        console.error('Error extracting diet info from quick suggestion:', extractError);
+      }
     } catch (err) {
       setError(err.message || "Failed to get meal suggestions. Please try again.");
     } finally {
@@ -497,7 +568,7 @@ const AiChat = () => {
                 )}
               </div>
               
-              {message.role === 'assistant' && message.isDietRelated && (
+              {message.role === 'assistant' && message.isDietRelated && macroInfo[message.id] && (
                 <div className="message-actions-below">
                   <button 
                     className="add-to-diet-button"
@@ -508,7 +579,7 @@ const AiChat = () => {
                 </div>
               )}
               
-              {message.role === 'assistant' && message.isMealPlannerRelated && (
+              {message.role === 'assistant' && message.isMealPlannerRelated && plannerInfo[message.id] && (
                 <div className="message-actions-below">
                   <button 
                     className="add-to-planner-button"
